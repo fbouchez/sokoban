@@ -36,4 +36,5 @@ HATT  = 1
 HSUCC = 2
 
 
-
+# Time delays
+MOVE_DELAY = 3 # milliseconds

@@ -94,6 +94,7 @@ class Game:
         for d in path:
             self.player.move(d)
             self.update_screen()
+            pygame.time.wait(SOKOBAN.MOVE_DELAY)
 
 
     def process_event(self, event):

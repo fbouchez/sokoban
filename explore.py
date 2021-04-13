@@ -58,10 +58,10 @@ class Dijkstra:
         current = dest
         while current != source:
             x,y = current
-            print ('path:', current)
+            # print ('path:', current)
             current,move,direct = self.preds[y][x]
             path.append(direct)
 
-        print ('path:', current)
+        # print ('path:', current)
         return reversed(path)
 
