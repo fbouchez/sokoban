@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 import pygame
 from pygame.locals import *
 import constants as SOKOBAN
 from game import *
+import time
 
 class Menu:
     def __init__(self):
@@ -33,15 +36,15 @@ class Menu:
         window.blit(self.image, (0,0))
 
         self.new_game_txt_surface = self.font.render(self.new_game_txt, True, SOKOBAN.BLACK, SOKOBAN.WHITE)
-        self.new_game_txt_position = ((SOKOBAN.WINDOW_WIDTH / 2) - (self.new_game_txt_surface.get_width() / 2), 300)
+        self.new_game_txt_position = ((SOKOBAN.WINDOW_WIDTH // 2) - (self.new_game_txt_surface.get_width() // 2), 300)
         window.blit(self.new_game_txt_surface, self.new_game_txt_position)
 
         self.load_game_txt_surface = self.font.render(self.load_game_txt, True, SOKOBAN.BLACK, SOKOBAN.WHITE)
-        self.load_game_txt_position = ((SOKOBAN.WINDOW_WIDTH / 2) - (self.load_game_txt_surface.get_width() / 2), 370)
+        self.load_game_txt_position = ((SOKOBAN.WINDOW_WIDTH // 2) - (self.load_game_txt_surface.get_width() // 2), 370)
         window.blit(self.load_game_txt_surface, self.load_game_txt_position)
 
         self.quit_game_txt_surface = self.font.render(self.quit_game_txt, True, SOKOBAN.BLACK, SOKOBAN.WHITE)
-        self.quit_game_txt_position = ((SOKOBAN.WINDOW_WIDTH / 2) - (self.quit_game_txt_surface.get_width() / 2), 440)
+        self.quit_game_txt_position = ((SOKOBAN.WINDOW_WIDTH // 2) - (self.quit_game_txt_surface.get_width() // 2), 440)
         window.blit(self.quit_game_txt_surface, self.quit_game_txt_position)
 
 
@@ -49,6 +52,8 @@ def main():
     pygame.init()
     pygame.key.set_repeat(100, 100)
     pygame.display.set_caption("Sokoban Game")
+    # print (pygame.display.list_modes(8))
+    # window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT), flags=RESIZABLE)
     window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT))
     menu = Menu()
 
@@ -57,17 +62,18 @@ def main():
         event = pygame.event.wait()
         if event.type == QUIT:
             run = False
-        if event.type == KEYDOWN:
-            if event.key == K_j:
-                sokoban = Game(window)
+        elif event.type == KEYDOWN:
+            if event.key == K_n:
+                sokoban = Game(window, continueGame = False)
                 sokoban.start()
             elif event.key == K_c:
-                sokoban = Game(window)
-                sokoban.scores.load()
+                sokoban = Game(window, continueGame = True)
             elif event.key == K_ESCAPE:
                 run = False
-        if event.type == MOUSEBUTTONUP:
+        elif event.type == MOUSEBUTTONUP:
             run = menu.click(event.pos, window)
+        # else:
+            # print ("Unknown event:", event)
 
         pygame.draw.rect(window, SOKOBAN.WHITE, (0,0,SOKOBAN.WINDOW_WIDTH,SOKOBAN.WINDOW_HEIGHT))
         menu.render(window)

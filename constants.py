@@ -12,6 +12,7 @@ TARGET          = 3
 TARGET_FILLED   = 4
 PLAYER          = 5
 AIR             = 6
+GROUND          = 7
 
 UP      = 100
 DOWN    = 101
@@ -23,3 +24,14 @@ WHITE           = (255,255,255)
 BLACK           = (0,0,0)
 BLUE            = (0,0,150)
 GREY            = (200,200,200)
+
+HOFF  = 0
+HATT  = 1
+HSUCC = 2
+
+
+# 
+DIRS = [(0, 1),
+        (0, -1),
+        (1, 0),
+        (-1, 0)]

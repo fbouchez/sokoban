@@ -11,3 +11,8 @@ To run this game you'll need python3 and pygame installed
 
 ### How to run
 ```python3 Sokoban.py```
+
+
+Original source
+---------------
+https://github.com/Gemkodor/sokoban.git
