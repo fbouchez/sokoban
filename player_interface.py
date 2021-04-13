@@ -37,7 +37,7 @@ class PlayerInterface:
             if x > pos[0] and x < pos[0] + surf.get_width() \
             and y > pos[1] and y < pos[1] + surf.get_height():
                 call()
-                return
+                return None
 
         # check if clicked in the game
 
@@ -48,7 +48,7 @@ class PlayerInterface:
             bx = (x - origx) // SOKOBAN.SPRITESIZE
             by = (y - origy) // SOKOBAN.SPRITESIZE
 
-            level.clicked((bx, by))
+            return bx, by
 
     def setTxtColors(self):
 

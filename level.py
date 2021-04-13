@@ -129,7 +129,7 @@ class Level:
         return levelHasChanged
 
 
-    def clicked (self, pos):
+    def path_to (self, pos):
         targetx, targety = pos
 
         if not self.dij:
@@ -138,20 +138,10 @@ class Level:
 
         if not self.dij.is_marked((targetx,targety)):
             print ("area is not attainable...")
-            return
+            return None
 
         path = self.dij.shortest_path(self.position_player, pos)
-
-        for d in path:
-            self.movePlayer(d)
-
-
-
-
-
-
-
-
+        return path
 
 
     def update_visual (self):

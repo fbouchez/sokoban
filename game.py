@@ -8,6 +8,17 @@ from player import *
 from scores import *
 from player_interface import *
 
+KEYDIR = {
+        K_UP: SOKOBAN.UP,
+        K_DOWN: SOKOBAN.DOWN,
+        K_LEFT: SOKOBAN.LEFT,
+        K_RIGHT: SOKOBAN.RIGHT,
+        K_z: SOKOBAN.UP,
+        K_s: SOKOBAN.DOWN,
+        K_q: SOKOBAN.LEFT,
+        K_d: SOKOBAN.RIGHT
+        }
+
 class Game:
     def __init__(self, window, continueGame=True):
         self.window = window
@@ -74,6 +85,17 @@ class Game:
             self.process_event(pygame.event.wait())
             self.update_screen()
 
+
+    def animate_move_to(self, position):
+        path = self.level.path_to(position)
+        if not path:
+            return
+
+        for d in path:
+            self.player.move(d)
+            self.update_screen()
+
+
     def process_event(self, event):
         if event.type == QUIT:
             pygame.quit()
@@ -82,9 +104,11 @@ class Game:
             if event.key == K_ESCAPE:
                 # Quit game
                 self.play = False
-            elif event.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT, K_z, K_s, K_q, K_d]:
+            elif event.key in KEYDIR.keys():
+                direction = KEYDIR[event.key]
+
                 # Move player
-                self.has_changed = self.player.move(event.key)
+                self.has_changed = self.player.move(direction)
                 if self.has_changed:
                     self.player_interface.colorTxtCancel = SOKOBAN.BLACK
 
@@ -104,7 +128,10 @@ class Game:
                 self.player_interface.colorTxtCancel = SOKOBAN.GREY
 
         elif event.type == MOUSEBUTTONUP:
-            self.player_interface.click(event.pos, self.level, self)
+            position = self.player_interface.click(event.pos, self.level, self)
+            if position:
+                self.animate_move_to(position)
+
         elif event.type == MOUSEMOTION:
             self.player_interface.mouse_pos = event.pos
         # else:

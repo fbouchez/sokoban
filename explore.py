@@ -27,7 +27,7 @@ class Dijkstra:
 
         while not fifo.empty():
             x,y = fifo.get()
-            for mx,my in SOKOBAN.DIRS:
+            for d,(mx,my) in enumerate(SOKOBAN.DIRS):
                 if mark[y+my][x+mx]:
                     continue
 
@@ -37,7 +37,7 @@ class Dijkstra:
                 mark[y+my][x+mx] = True
                 att.append ((x+mx,y+my))
                 fifo.put ((x+mx,y+my))
-                pred[y+my][x+mx] = ((x,y), (mx,my))
+                pred[y+my][x+mx] = ((x,y), (mx,my), d)
 
         self.marks = mark
         self.att_list = att
@@ -59,7 +59,7 @@ class Dijkstra:
         while current != source:
             x,y = current
             print ('path:', current)
-            current,direct = self.preds[y][x]
+            current,move,direct = self.preds[y][x]
             path.append(direct)
 
         print ('path:', current)
