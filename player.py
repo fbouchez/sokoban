@@ -5,14 +5,9 @@ import constants as SOKOBAN
 class Player:
     def __init__(self, level):
         self.level = level
-        self.pos = level.position_player
         self.direction = SOKOBAN.DOWN
 
-    def move(self, direction, interface):
-
-        print ('pos init', self.pos)
-        x = self.pos[0]
-        y = self.pos[1]
+    def move(self, direction):
         if direction == K_LEFT or direction == K_q:
             self.direction = SOKOBAN.LEFT
             move_x = -1
@@ -32,10 +27,8 @@ class Player:
         else:
             raise ValueError("Unknown direction", direction)
 
-        changed = self.level.movePlayer((move_x, move_y), interface)
-        self.pos[0],self.pos[1] = self.level.position_player
+        changed = self.level.movePlayer((move_x, move_y))
 
-        print ('pos end', self.pos)
         return changed
 
 
@@ -49,5 +42,7 @@ class Player:
         elif self.direction == SOKOBAN.UP:
             top = SOKOBAN.SPRITESIZE * 3
 
+        x,y = self.level.position_player
+
         areaPlayer = pygame.Rect((0, top), (32, 32))
-        window.blit(textures[SOKOBAN.PLAYER], (self.pos[0] * SOKOBAN.SPRITESIZE, self.pos[1] * SOKOBAN.SPRITESIZE), area=areaPlayer)
+        window.blit(textures[SOKOBAN.PLAYER], (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE), area=areaPlayer)

@@ -52,8 +52,6 @@ def main():
     pygame.init()
     pygame.key.set_repeat(100, 100)
     pygame.display.set_caption("Sokoban Game")
-    # print (pygame.display.list_modes(8))
-    # window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT), flags=RESIZABLE)
     window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT))
     menu = Menu()
 
@@ -68,6 +66,7 @@ def main():
                 sokoban.start()
             elif event.key == K_c:
                 sokoban = Game(window, continueGame = True)
+                sokoban.start()
             elif event.key == K_ESCAPE:
                 run = False
         elif event.type == MOUSEBUTTONUP:

@@ -13,18 +13,20 @@ class Game:
         self.window = window
         self.load_textures()
         self.player = None
-        self.index_level = 1
         self.scores = Scores(self)
 
         if continueGame:
             self.scores.load()
         else:
-            self.load_level()
+            self.index_level = 1
 
+        self.load_level()
         self.play = True
         self.player_interface = PlayerInterface(self.player, self.level)
         self.visual = False
         self.has_changed = False
+
+        self.start()
 
     def load_textures(self):
         self.textures = {
@@ -53,8 +55,8 @@ class Game:
         self.level = Level(self.index_level)
         self.board = pygame.Surface((self.level.width, self.level.height))
         if self.player:
-            self.player.pos = self.level.position_player
             self.player_interface.level = self.level
+            self.player.level = self.level
         else:
             self.player = Player(self.level)
 
@@ -82,7 +84,10 @@ class Game:
                 self.play = False
             elif event.key in [K_UP, K_DOWN, K_LEFT, K_RIGHT, K_z, K_s, K_q, K_d]:
                 # Move player
-                self.has_changed = self.player.move(event.key,  self.player_interface)
+                self.has_changed = self.player.move(event.key)
+                if self.has_changed:
+                    self.player_interface.colorTxtCancel = SOKOBAN.BLACK
+
                 if self.has_win():
                     self.index_level += 1
                     self.scores.save()
@@ -93,10 +98,11 @@ class Game:
             elif event.key == K_v:
                 # Vizualize possible moves
                 self.toggle_visualize()
-
             elif event.key == K_c:
                 # Cancel last move
-                self.level.cancel_last_move(self.player, self.player_interface)
+                self.level.cancel_last_move(self.player)
+                self.player_interface.colorTxtCancel = SOKOBAN.GREY
+
         elif event.type == MOUSEBUTTONUP:
             self.player_interface.click(event.pos, self.level, self)
         elif event.type == MOUSEMOTION:
@@ -116,11 +122,13 @@ class Game:
             if self.visual:
                 self.level.update_visual()
 
-        pox_x_board = (SOKOBAN.WINDOW_WIDTH / 2) - (self.board.get_width() / 2)
-        pos_y_board = (SOKOBAN.WINDOW_HEIGHT / 2) - (self.board.get_height() / 2)
-        self.window.blit(self.board, (pox_x_board, pos_y_board))
+        pos_x_board = (SOKOBAN.WINDOW_WIDTH // 2) - (self.board.get_width() // 2)
+        pos_y_board = (SOKOBAN.WINDOW_HEIGHT // 2) - (self.board.get_height() // 2)
+        self.window.blit(self.board, (pos_x_board, pos_y_board))
 
-        self.player_interface.render(self.window, self.index_level)
+        self.origin_board = (pos_x_board, pos_y_board)
+
+        self.player_interface.render(self.window, self.index_level, self.level)
 
         pygame.display.flip()
 

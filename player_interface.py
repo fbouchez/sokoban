@@ -15,6 +15,8 @@ class PlayerInterface:
         self.colorTxtReset = SOKOBAN.BLACK
         self.txtVisu = "Aide visuelle (V)"
         self.colorTxtVisu = SOKOBAN.BLACK
+        self.txtMoves = "Coups : 0"
+        self.colorTxtMoves = SOKOBAN.BLACK
 
 
     def cancel(self):
@@ -37,13 +39,32 @@ class PlayerInterface:
                 call()
                 return
 
+        # check if clicked in the game
+
+        origx, origy = game.origin_board
+        if x > origx and x < origx + game.board.get_width() \
+        and y > origy and y < origy + game.board.get_height():
+
+            bx = (x - origx) // SOKOBAN.SPRITESIZE
+            by = (y - origy) // SOKOBAN.SPRITESIZE
+
+            level.clicked((bx, by))
+
     def setTxtColors(self):
+
         pass
 
-    def render(self, window, level):
-        self.txtLevel = "Niveau " + str(level)
+    def render(self, window, levelNum, level):
+        self.txtLevel = "Niveau " + str(levelNum)
         self.txtLevelSurface = self.font_menu.render(self.txtLevel, True, self.colorTxtLevel, SOKOBAN.WHITE)
         window.blit(self.txtLevelSurface, (10, 10))
+
+        self.txtMoves = "Coups : " + str(level.num_moves)
+        self.txtMovesSurface = self.font_menu.render(self.txtMoves, True, self.colorTxtLevel, SOKOBAN.WHITE)
+        self.posTxtMoves = (
+                SOKOBAN.WINDOW_WIDTH - self.txtMovesSurface.get_width() - 10,
+                SOKOBAN.WINDOW_HEIGHT - self.txtMovesSurface.get_height() - 10)
+        window.blit(self.txtMovesSurface, self.posTxtMoves)
 
         self.txtCancelSurface = self.font_menu.render(self.txtCancel, True, self.colorTxtCancel, SOKOBAN.WHITE)
         self.posTxtCancel = (SOKOBAN.WINDOW_WIDTH - self.txtCancelSurface.get_width() - 10, 10)

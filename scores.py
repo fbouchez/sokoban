@@ -9,10 +9,6 @@ class Scores:
             with open("scores", "r") as data:
                 scores = json.load(data)
                 self.game.index_level = scores["level"]
-            print ('now loading',  self.game.index_level)
-            self.game.load_level()
-            print ('finished loading',  self.game.index_level)
-            self.game.start()
         except FileNotFoundError:
             print("No saved data")
 

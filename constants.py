@@ -14,10 +14,16 @@ PLAYER          = 5
 AIR             = 6
 GROUND          = 7
 
-UP      = 100
-DOWN    = 101
-LEFT    = 102
-RIGHT   = 103
+UP      = 0
+DOWN    = 1
+LEFT    = 2
+RIGHT   = 3
+
+DIRS = [(0, -1),  # up
+        (0, 1),   # down
+        (-1, 0),  # left
+        (1, 0),   # right
+       ]
 
 # Colors
 WHITE           = (255,255,255)
@@ -30,8 +36,4 @@ HATT  = 1
 HSUCC = 2
 
 
-# 
-DIRS = [(0, 1),
-        (0, -1),
-        (1, 0),
-        (-1, 0)]
+

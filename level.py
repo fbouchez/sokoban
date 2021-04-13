@@ -7,6 +7,8 @@ class Level:
     def __init__(self, level_to_load):
         self.last_structure_state = None
         self.load(level_to_load)
+        self.num_moves = 0
+        self.dij = None
 
     def load(self, levelnum):
         print ('loading level', levelnum)
@@ -36,7 +38,7 @@ class Level:
                         level_row.append(SOKOBAN.TARGET)
                     elif rows[y][x] == '@':
                         level_row.append(SOKOBAN.GROUND)
-                        self.position_player = [x,y]
+                        self.position_player = (x,y)
                         print ('load player position', self.position_player)
                 self.structure.append(level_row)
 
@@ -47,7 +49,7 @@ class Level:
         self.height = (len(rows) - 1) * SOKOBAN.SPRITESIZE
 
         dij = Dijkstra(self)
-        att,_ = dij.attainable(self.position_player, boxes_block=False)
+        att = dij.attainable(self.position_player, boxes_block=False)
         for x,y in att:
             if self.structure[y][x] == SOKOBAN.AIR:
                 self.structure[y][x] = SOKOBAN.GROUND
@@ -74,12 +76,11 @@ class Level:
         return self.structure[y][x] in [SOKOBAN.GROUND, SOKOBAN.TARGET]
 
 
-    def movePlayer (self, direction, interface):
+    def movePlayer (self, direction):
         x,y = self.position_player
-
-        print ('level player pos', self.position_player)
         move_x, move_y = direction
 
+        playerHasMoved  = False
         levelHasChanged = False
 
         xx = x+move_x
@@ -93,18 +94,20 @@ class Level:
 
         if self.is_empty((xx,yy)):
             # Player just moved on an empty cell
-            self.position_player = [xx,yy]
+            self.position_player = (xx,yy)
+            playerHasMoved  = True
 
         elif self.is_box((xx,yy)) and self.is_empty((xx2,yy2)):
             # Player is trying to push a box
+
+            levelHasChanged = True
+
+            self.last_structure_state = deepcopy(self.structure)
+            self.last_boxes_state = deepcopy(self.boxes)
+            self.last_player_pos = [x,y]
+
             boxi = self.boxes.index((xx,yy))
             self.boxes[boxi] = (xx2,yy2)
-
-            selfHasChanged = True
-            previous_level_structure = deepcopy(self.structure)
-            previous_level_boxes = deepcopy(self.boxes)
-            previous_player_pos = [x,y]
-
 
             if self.structure[yy][xx] == SOKOBAN.TARGET_FILLED:
                 self.structure[yy][xx] = SOKOBAN.TARGET
@@ -116,24 +119,48 @@ class Level:
             else:
                 self.structure[yy2][xx2] = SOKOBAN.BOX
 
-            self.position_player = [xx,yy]
+            self.position_player = (xx,yy)
+            playerHasMoved  = True
 
-
-        if levelHasChanged:
-            self.last_structure_state = previous_self_structure
-            self.last_boxes_state = previous_level_boxes
-            self.last_player_pos = previous_player_pos
-            interface.colorTxtCancel = SOKOBAN.BLACK
+        if playerHasMoved:
+            self.dij = None
+            self.num_moves += 1
 
         return levelHasChanged
+
+
+    def clicked (self, pos):
+        targetx, targety = pos
+
+        if not self.dij:
+            self.dij = Dijkstra(self)
+            self.dij.attainable(self.position_player)
+
+        if not self.dij.is_marked((targetx,targety)):
+            print ("area is not attainable...")
+            return
+
+        path = self.dij.shortest_path(self.position_player, pos)
+
+        for d in path:
+            self.movePlayer(d)
+
+
+
+
+
+
+
 
 
 
     def update_visual (self):
         self.reset_highlight()
-        dij = Dijkstra(self)
-        att,mark = dij.attainable(self.position_player)
+        self.dij = Dijkstra(self)
+        att = self.dij.attainable(self.position_player)
         self.highlight(att, SOKOBAN.HATT)
+
+        mark = self.dij.get_marks()
 
         succ = []
         for bx,by in self.boxes:
@@ -147,12 +174,13 @@ class Level:
         self.highlight(succ, SOKOBAN.HSUCC)
 
 
-    def cancel_last_move(self, player, interface):
+    def cancel_last_move(self, player):
         if self.last_structure_state:
             self.structure = self.last_structure_state
-            player.pos = self.last_player_pos
-            interface.colorTxtCancel = SOKOBAN.GREY
+            self.boxes = self.last_boxes_state
+            self.position_player = self.last_player_pos
             self.last_structure_state = None
+
         else:
             print("No previous state")
 
