@@ -104,7 +104,7 @@ class Level:
 
             self.last_structure_state = deepcopy(self.structure)
             self.last_boxes_state = deepcopy(self.boxes)
-            self.last_player_pos = [x,y]
+            self.last_player_pos = (x,y)
 
             boxi = self.boxes.index((xx,yy))
             self.boxes[boxi] = (xx2,yy2)
@@ -164,12 +164,13 @@ class Level:
         self.highlight(succ, SOKOBAN.HSUCC)
 
 
-    def cancel_last_move(self, player):
+    def cancel_last_move(self):
         if self.last_structure_state:
             self.structure = self.last_structure_state
             self.boxes = self.last_boxes_state
             self.position_player = self.last_player_pos
             self.last_structure_state = None
+            self.dij = None
 
         else:
             print("No previous state")

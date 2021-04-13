@@ -56,6 +56,7 @@ class Dijkstra:
         assert (self.marks)
         path = []
         current = dest
+        # print ('source:', source, 'dest:', dest)
         while current != source:
             x,y = current
             # print ('path:', current)

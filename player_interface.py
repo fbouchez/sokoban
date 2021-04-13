@@ -20,7 +20,7 @@ class PlayerInterface:
 
 
     def cancel(self):
-        self.level.cancel_last_move(self.player, self)
+        self.level.cancel_last_move()
         self.colorTxtCancel = SOKOBAN.GREY
 
     def click(self, pos_click, level, game):

@@ -125,7 +125,7 @@ class Game:
                 self.toggle_visualize()
             elif event.key == K_c:
                 # Cancel last move
-                self.level.cancel_last_move(self.player)
+                self.level.cancel_last_move()
                 self.player_interface.colorTxtCancel = SOKOBAN.GREY
 
         elif event.type == MOUSEBUTTONUP:
