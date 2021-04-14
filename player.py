@@ -10,7 +10,7 @@ class Player:
     def move(self, direction):
         self.direction = direction
         d = SOKOBAN.DIRS[self.direction]
-        changed = self.level.movePlayer(d)
+        changed = self.level.move_player(d)
 
         return changed
 

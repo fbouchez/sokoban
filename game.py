@@ -104,6 +104,30 @@ class Game:
             self.update_screen()
             pygame.time.wait(SOKOBAN.MOVE_DELAY)
 
+
+    def animate_move_box(self, box, path):
+        self.level.dij = None
+        for d in path:
+            print ("now path is ", SOKOBAN.DNAMES[d])
+            pos = self.level.side_box(box, d)
+
+            self.animate_move_to(pos)
+
+
+            oppd = SOKOBAN.OPPOSITE[d]
+            print ("opposite direction:", SOKOBAN.DNAMES[oppd])
+
+            print ("current player pos", self.level.position_player)
+            ret = self.player.move(oppd)
+            assert (ret) # should have changed the level
+            self.update_screen()
+            pygame.time.wait(SOKOBAN.MOVE_DELAY)
+
+            # new box position
+            box = self.level.side_box(box, oppd)
+            print ("new box pos", box)
+
+
     def flash_red (self, pos):
         for x in range(4):
             self.level.highlight([pos], SOKOBAN.HERROR)
@@ -121,20 +145,23 @@ class Game:
 
     def click_pos (self, position):
         if self.selected_position:
-            postype, pos = self.selected_position
+            postype, selpos = self.selected_position
 
             if postype == SOKOBAN.BOX:
                 self.cancel_selected()
 
                 # now try to move the box
-                if position == pos:
+                if position == selpos:
                     # same position: auto solving this box to a target
-                    ret = self.level.solve_one_box(pos)
+                    path = self.level.solve_one_box(selpos)
                 else:
                     # different position: move the box to this area
-                    ret = self.level.move_one_box(pos)
-                if not ret:
-                    self.flash_red(pos)
+                    path = self.level.move_one_box(selpos, position)
+                if not path:
+                    self.flash_red(selpos)
+                else:
+                    self.animate_move_box(selpos, path)
+
             else:
                 # now we should only select boxes
                 assert(false)
@@ -187,6 +214,16 @@ class Game:
                 # Cancel last move
                 self.level.cancel_last_move()
                 self.player_interface.colorTxtCancel = SOKOBAN.GREY
+
+            # "Test" key
+            elif event.key == K_t:
+                pass
+                path = self.level.move_one_box((8, 3), (4, 3))
+                if not path:
+                    self.flash_red((8,3))
+                else:
+                    self.animate_move_box((8,3), path)
+
 
         elif event.type == MOUSEBUTTONUP:
             position = self.player_interface.click(event.pos, self.level, self)

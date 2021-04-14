@@ -126,12 +126,14 @@ class Level:
 
     def is_empty (self, pos):
         x,y = pos
-        return self.structure[y][x] in [SOKOBAN.GROUND, SOKOBAN.TARGET]
+        return self.structure[y][x] in [SOKOBAN.GROUND, SOKOBAN.TARGET, SOKOBAN.PLAYER]
 
 
-    def movePlayer (self, direction):
+    def move_player (self, direction):
         x,y = self.position_player
         move_x, move_y = direction
+
+        # print ("trying to move", x,"x",y," in direction",direction)
 
         playerHasMoved  = False
         levelHasChanged = False
@@ -187,6 +189,20 @@ class Level:
             self.dij = Dijkstra(self)
             self.dij.attainable(self.position_player)
 
+    def box_attainable_sides(self, boxpos):
+
+        self.compute_attainable()
+        mark = self.dij.get_marks()
+        succ = []
+        bx,by = boxpos
+        sides = [False for d in SOKOBAN.DIRS]
+        for d,(mx,my) in enumerate(SOKOBAN.DIRS):
+            if mark[by+my][bx+mx]:
+                sides[d] = True
+        return tuple(sides)
+
+
+
     def compute_box_successors(self, boxpos):
         assert(self.is_box(boxpos))
 
@@ -235,14 +251,26 @@ class Level:
         return False
 
 
-    def move_one_box(self, position):
+    def move_one_box(self, source, dest):
+        print ("Moving one box from", source, "to", dest)
+        bs = BoxSolution(self)
+        path = bs.move(source, dest)
 
-        succ = self.compute_box_successors(position)
-
-        if not succ:
+        if not path:
             return False
 
-        pass
+        # print ("push the box as follows:")
+        # for d in path:
+            # print ("\tfrom",SOKOBAN.DNAMES[d])
+        # print ("now path", list(path))
+        return path
+
+
+    def side_box(self, box, d):
+        bx,by = box
+        mx,my = SOKOBAN.DIRS[d]
+        return bx+mx,by+my
+
 
 
     def update_visual (self):

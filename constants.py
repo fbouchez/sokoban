@@ -32,11 +32,15 @@ DOWN    = 1
 LEFT    = 2
 RIGHT   = 3
 
+OPPOSITE = [DOWN,UP,RIGHT,LEFT] # opposite directions
+
 DIRS = [(0, -1),  # up
         (0, 1),   # down
         (-1, 0),  # left
         (1, 0),   # right
        ]
+
+DNAMES = ["up","down","left","right"]
 
 # Colors
 WHITE           = (255,255,255)
