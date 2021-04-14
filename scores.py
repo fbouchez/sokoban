@@ -9,6 +9,7 @@ class Scores:
             with open("scores", "r") as data:
                 scores = json.load(data)
                 self.game.index_level = scores["level"]
+                self.game.level_style = scores["style"]
         except FileNotFoundError:
             print("No saved data")
 
@@ -23,7 +24,8 @@ class Scores:
 
         if saved_level < self.game.index_level:
             data = {
-                "level": self.game.index_level
+                "level": self.game.index_level,
+                "style": self.game.level_style
             }
             with open("scores", "w") as scores:
                 json.dump(data, scores, ensure_ascii=False, indent=4)

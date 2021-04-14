@@ -20,12 +20,12 @@ class Menu:
 
         if x > self.new_game_txt_position[0] and x < self.new_game_txt_position[0] + self.new_game_txt_surface.get_width() \
         and y > 300 and y < 300 + self.new_game_txt_surface.get_height():
-            sokoban = Game(window)
+            sokoban = Game(window, continueGame = False)
             sokoban.start()
         elif x > self.load_game_txt_position[0] and x < self.load_game_txt_position[0] + self.load_game_txt_surface.get_width() \
         and y > 370 and y < 370 + self.load_game_txt_surface.get_height():
-            sokoban = Game(window)
-            sokoban.scores.load()
+            sokoban = Game(window, continueGame = True)
+            sokoban.start()
         elif x > self.quit_game_txt_position[0] and x < self.quit_game_txt_position[0] + self.quit_game_txt_surface.get_width() \
         and y > 440 and y < 440 + self.quit_game_txt_surface.get_height():
             return False

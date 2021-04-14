@@ -30,12 +30,14 @@ class Game:
             self.scores.load()
         else:
             self.index_level = 1
+            self.level_style = 'single_file'
 
         self.load_level()
         self.play = True
         self.player_interface = PlayerInterface(self.player, self.level)
         self.visual = False
         self.has_changed = False
+        self.selected_position = None
 
         self.start()
 
@@ -49,21 +51,27 @@ class Game:
             SOKOBAN.GROUND: pygame.image.load('assets/images/stoneCenter.png').convert_alpha()
         }
         # self.textures[SOKOBAN.TARGET].set_alpha(12) # does not seem to have any effect
-        surfAtt = pygame.Surface((SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
-        surfAtt.set_alpha(50)
-        surfAtt.fill((0,255,0)) # green highlight
 
-        surfSucc = pygame.Surface((SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
-        surfSucc.set_alpha(50)
-        surfSucc.fill((0,0,255)) # blue highlight
+        def surfhigh (color, alpha):
+            surf = pygame.Surface((SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
+            surf.set_alpha(alpha)
+            surf.fill(color) # green highlight
+            return surf
+
+        surfAtt  = surfhigh((0,255,0),50) # green highlight
+        surfSucc = surfhigh((0,0,255),50) # blue highlight
+        surfSelect= surfhigh((255,255,0),200) # yellow highlight
+        surfError = surfhigh((255,0,0),200) # red highlight
 
         self.highlights = {
-                SOKOBAN.HATT:  surfAtt,
-                SOKOBAN.HSUCC: surfSucc
+                SOKOBAN.HATT:   surfAtt,
+                SOKOBAN.HSUCC:  surfSucc,
+                SOKOBAN.HSELECT:surfSelect,
+                SOKOBAN.HERROR :surfError,
                 }
 
     def load_level(self):
-        self.level = Level(self.index_level)
+        self.level = Level(self.index_level, self.level_style)
         self.board = pygame.Surface((self.level.width, self.level.height))
         if self.player:
             self.player_interface.level = self.level
@@ -96,6 +104,52 @@ class Game:
             self.update_screen()
             pygame.time.wait(SOKOBAN.MOVE_DELAY)
 
+    def flash_red (self, pos):
+        for x in range(4):
+            self.level.highlight([pos], SOKOBAN.HERROR)
+            pygame.time.wait(SOKOBAN.FLASH_DELAY)
+            self.update_screen()
+            self.level.reset_highlight()
+            pygame.time.wait(SOKOBAN.FLASH_DELAY)
+            self.update_screen()
+
+
+    def cancel_selected(self):
+        self.selected_position = None
+        self.level.reset_highlight()
+
+
+    def click_pos (self, position):
+        if self.selected_position:
+            postype, pos = self.selected_position
+
+            if postype == SOKOBAN.BOX:
+                self.cancel_selected()
+
+                # now try to move the box
+                if position == pos:
+                    # same position: auto solving this box to a target
+                    ret = self.level.solve_one_box(pos)
+                else:
+                    # different position: move the box to this area
+                    ret = self.level.move_one_box(pos)
+                if not ret:
+                    self.flash_red(pos)
+            else:
+                # now we should only select boxes
+                assert(false)
+            return
+
+        # nothing selected yet
+        if self.level.is_box(position):
+            # selecting a box
+            self.selected_position = (SOKOBAN.BOX, position)
+            self.level.highlight([position], SOKOBAN.HSELECT)
+        else:
+            # trying to move the character
+            self.animate_move_to(position)
+
+
 
     def process_event(self, event):
         if event.type == QUIT:
@@ -117,6 +171,12 @@ class Game:
                     self.index_level += 1
                     self.scores.save()
                     self.load_level()
+
+            elif event.key == K_k: # cheat key :-)
+                    self.index_level += 1
+                    self.scores.save()
+                    self.load_level()
+
             elif event.key == K_r:
                 # Restart current level
                 self.load_level()
@@ -131,7 +191,9 @@ class Game:
         elif event.type == MOUSEBUTTONUP:
             position = self.player_interface.click(event.pos, self.level, self)
             if position:
-                self.animate_move_to(position)
+                self.click_pos(position)
+            else:
+                self.cancel_selected()
 
         elif event.type == MOUSEMOTION:
             self.player_interface.mouse_pos = event.pos

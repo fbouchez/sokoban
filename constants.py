@@ -1,3 +1,9 @@
+SINGLE_FILE = 'Original'
+# SINGLE_FILE = 'Tests'
+
+
+# Normally, no need to modify anything below
+
 MAPWIDTH    = 25
 MAPHEIGHT   = 15
 SPRITESIZE  = 32
@@ -5,7 +11,9 @@ SPRITESIZE  = 32
 WINDOW_WIDTH  = 1024
 WINDOW_HEIGHT = 768
 
+
 # Blocks
+NONE            = 0
 WALL            = 1
 BOX             = 2
 TARGET          = 3
@@ -13,6 +21,11 @@ TARGET_FILLED   = 4
 PLAYER          = 5
 AIR             = 6
 GROUND          = 7
+
+SYMBOLS_ORIGINALS = ['','#','$','.','*','@',' ','']
+SYMBOLS_MODERN    = ['','X','*','.','&','@',' ','']
+
+
 
 UP      = 0
 DOWN    = 1
@@ -34,7 +47,10 @@ GREY            = (200,200,200)
 HOFF  = 0
 HATT  = 1
 HSUCC = 2
+HSELECT = 3
+HERROR  = 4
 
 
 # Time delays
 MOVE_DELAY = 3 # milliseconds
+FLASH_DELAY = 100 # milliseconds

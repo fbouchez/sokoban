@@ -4,49 +4,102 @@ from copy import deepcopy
 from explore import *
 
 class Level:
-    def __init__(self, level_to_load):
+    def __init__(self, level_to_load, levelstyle):
         self.last_structure_state = None
-        self.load(level_to_load)
         self.num_moves = 0
         self.dij = None
+        self.single_file_levels = None
+        self.level_number = 0
+        self.load(level_to_load, levelstyle)
 
-    def load(self, levelnum):
-        print ('loading level', levelnum)
+    def parse_rows(self, rows, symbols):
 
         self.structure = []
         max_width = 0
         self.boxes = []
-        with open("assets/levels/level_" + str(levelnum) + ".txt") as level_file:
-            rows = level_file.read().split('\n')
+        height = len(rows)
 
-            for y in range(len(rows)):
-                level_row = []
-                if len(rows[y]) > max_width:
-                    max_width = len(rows[y])
+        for y in range(len(rows)):
+            level_row = []
+            if rows[y] == '':
+                height -=1
+                continue
+            if len(rows[y]) > max_width:
+                max_width = len(rows[y])
 
-                for x in range(len(rows[y])):
-                    if rows[y][x] == ' ':
-                        level_row.append(SOKOBAN.AIR)
-                    elif rows[y][x] == 'X' or \
-                         rows[y][x] == '#':
-                        level_row.append(SOKOBAN.WALL)
-                    elif rows[y][x] == '*' or \
-                         rows[y][x] == '$':
-                        level_row.append(SOKOBAN.BOX)
-                        self.boxes.append((x,y))
-                    elif rows[y][x] == '.':
-                        level_row.append(SOKOBAN.TARGET)
-                    elif rows[y][x] == '@':
-                        level_row.append(SOKOBAN.GROUND)
-                        self.position_player = (x,y)
-                        print ('load player position', self.position_player)
-                self.structure.append(level_row)
+            for x in range(len(rows[y])):
+                block = symbols.index(rows[y][x])
+                level_row.append(block)
+
+                if block == SOKOBAN.BOX or block == SOKOBAN.TARGET_FILLED:
+                    self.boxes.append((x,y))
+                elif block == SOKOBAN.PLAYER:
+                    level_row[-1] = SOKOBAN.GROUND
+                    self.position_player = (x,y)
+
+            self.structure.append(level_row)
 
         self.map_width =  max_width
-        self.map_height = len(rows) - 1
+        self.map_height = height
+        # print ("Level size: ", self.map_width, "x", self.map_height)
+        # print (self.structure)
 
-        self.width = max_width * SOKOBAN.SPRITESIZE
-        self.height = (len(rows) - 1) * SOKOBAN.SPRITESIZE
+
+
+    def load_file_by_file(self, levelnum, nextlevel=False):
+        with open("assets/levels/level_" + str(levelnum) + ".txt") as level_file:
+            rows = level_file.read().split('\n')
+        self.parse_rows(rows, SOKOBAN.SYMBOLS_MODERN)
+
+
+    def load_single_file(self, levelnum, nextlevel=True):
+        if not self.single_file_levels:
+            with open("assets/levels/" + SOKOBAN.SINGLE_FILE + ".txt") as level_file:
+                rows = level_file.read().split('\n')
+            num = 0
+            lev = []
+            cur = []
+
+            for r in rows:
+                if r == '': continue
+                if r[0] == ';':
+                    curnum = int(r[2:])
+                    lev.append((curnum, cur))
+                    # print ("newlevel:", curnum, cur)
+                    cur = []
+                else:
+                    cur.append(r)
+
+            self.single_file_levels = lev
+
+        # if nextlevel:
+            # self.level_number += 1
+            # levelnum = self.level_number
+#
+        # for num,rows in self.single_file_levels:
+            # if num == levelnum:
+                # self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
+                # return
+
+        if levelnum > len(self.single_file_levels):
+            raise ValueError("Level does not exist (did you finish them all?)")
+
+        num,rows = self.single_file_levels[levelnum-1]
+
+        self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
+        return
+        raise ValueError("level number not found")
+
+
+    def load(self, levelnum, levelstyle='single_file'):
+        # print ('loading level', levelnum)
+        if levelstyle == 'file_by_file':
+            self.load_file_by_file(levelnum=levelnum)
+        elif levelstyle == 'single_file':
+            self.load_single_file(levelnum, nextlevel=False)
+
+        self.width = self.map_width * SOKOBAN.SPRITESIZE
+        self.height = self.map_height * SOKOBAN.SPRITESIZE
 
         dij = Dijkstra(self)
         att = dij.attainable(self.position_player, boxes_block=False)
@@ -129,12 +182,46 @@ class Level:
         return levelHasChanged
 
 
-    def path_to (self, pos):
-        targetx, targety = pos
-
+    def compute_attainable(self):
         if not self.dij:
             self.dij = Dijkstra(self)
             self.dij.attainable(self.position_player)
+
+    def compute_box_successors(self, boxpos):
+        assert(self.is_box(boxpos))
+
+        self.compute_attainable()
+        mark = self.dij.get_marks()
+        succ = []
+        bx,by = boxpos
+        for mx,my in SOKOBAN.DIRS:
+            if mark[by+my][bx+mx] \
+            and self.is_empty((bx-mx, by-my)):
+                # side is attainable
+                # and opposite side is free
+                succ.append((bx-mx, by-my))
+        return succ
+
+
+
+    def compute_boxes_successors(self):
+        self.compute_attainable()
+        mark = self.dij.get_marks()
+        succ = []
+        for bx,by in self.boxes:
+            for mx,my in SOKOBAN.DIRS:
+                if mark[by+my][bx+mx] \
+                and self.is_empty((bx-mx, by-my)):
+                    # side is attainable
+                    # and opposite side is free
+                    succ.append((bx-mx, by-my))
+        return succ
+
+
+
+    def path_to (self, pos):
+        targetx, targety = pos
+        self.compute_attainable()
 
         if not self.dij.is_marked((targetx,targety)):
             print ("area is not attainable...")
@@ -144,23 +231,28 @@ class Level:
         return path
 
 
+    def solve_one_box(self, position):
+        return False
+
+
+    def move_one_box(self, position):
+
+        succ = self.compute_box_successors(position)
+
+        if not succ:
+            return False
+
+        pass
+
+
     def update_visual (self):
         self.reset_highlight()
-        self.dij = Dijkstra(self)
-        att = self.dij.attainable(self.position_player)
-        self.highlight(att, SOKOBAN.HATT)
 
-        mark = self.dij.get_marks()
+        self.compute_attainable()
 
-        succ = []
-        for bx,by in self.boxes:
-            for mx,my in SOKOBAN.DIRS:
-                if mark[by+my][bx+mx] \
-                and self.is_empty((bx-mx, by-my)):
-                    # side is attainable
-                    # and opposite side is free
-                    succ.append((bx-mx, by-my))
+        self.highlight(self.dij.att_list, SOKOBAN.HATT)
 
+        succ = self.compute_boxes_successors()
         self.highlight(succ, SOKOBAN.HSUCC)
 
 

@@ -8,6 +8,7 @@ class Dijkstra:
         self.level = level
         self.marks = None
         self.preds = None
+        self.att_list = None
 
     def attainable (self, source, boxes_block = True):
         init_x, init_y = source
@@ -28,6 +29,7 @@ class Dijkstra:
         while not fifo.empty():
             x,y = fifo.get()
             for d,(mx,my) in enumerate(SOKOBAN.DIRS):
+                # print ('trying y:', y+my, 'x:', x+mx)
                 if mark[y+my][x+mx]:
                     continue
 
