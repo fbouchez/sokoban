@@ -162,7 +162,7 @@ class Game:
                 if not path:
                     self.flash_red(selpos)
                 else:
-                    self.animate_move_boxes(selpos, path)
+                    self.animate_move_boxes(path)
 
             else:
                 # now we should only select boxes
@@ -255,6 +255,11 @@ class Game:
             if event.type == KEYDOWN:
                 break
 
+
+    def debug(self):
+        self.update_screen()
+        print ("Waiting for keypress...")
+        self.wait_key()
 
     def level_win(self):
 

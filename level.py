@@ -272,14 +272,23 @@ class Level:
         return levelHasChanged
 
 
-    def compute_attainable(self):
+    def compute_attainable(self,virtual=False):
+        if virtual:
+            locdij = Dijkstra(self)
+            locdij.attainable(self.player_position)
+            return locdij.get_marks()
+
         if not self.dij:
             self.dij = Dijkstra(self)
             self.dij.attainable(self.player_position)
+            return self.dij.get_marks()
 
-    def box_attainable_sides(self, boxlist):
-        self.compute_attainable()
-        mark = self.dij.get_marks()
+    def box_attainable_sides(self, boxlist, virtual=False):
+        """
+        if virtual, do not erase existing Dijkstra calculation
+        """
+
+        mark = self.compute_attainable(virtual)
         l = []
         for bx,by in boxlist:
             sides = [False for d in SOKOBAN.DIRS]
