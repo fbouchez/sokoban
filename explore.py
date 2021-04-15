@@ -81,14 +81,14 @@ class BoxSolution:
         pass
 
 
-    def move(self, source, dest):
+    def move(self, source, dest=None):
         """
         Tries find a series of movement to move box from source to dest without 
         moving other boxes
         """
         assert (self.level.is_box(source))
 
-        if not self.level.is_empty(dest):
+        if dest != None and not self.level.is_empty(dest):
             return None
 
         succ = self.level.compute_box_successors(source)
@@ -98,8 +98,19 @@ class BoxSolution:
 
         # save current state of level w.r.t box & player
         saveplayer = self.level.position_player
+
         x,y = source
         save_box = self.level.structure[y][x] # can be either target or ground
+        if save_box == SOKOBAN.BOX:
+            self.level.structure[y][x] = SOKOBAN.GROUND
+        elif save_box == SOKOBAN.TARGET_FILLED:
+            self.level.structure[y][x] = SOKOBAN.TARGET
+        else:
+            raise ValueError("box problem")
+
+        # self.level.dij = None
+
+
 
         # initial state: box + attainable sides
         sides = self.level.box_attainable_sides(source)
@@ -131,7 +142,8 @@ class BoxSolution:
                     states[s] = (state,d) # previous state + direction player has to push the box
                     fifo.put (s)
 
-                if self.state_is_dest(s, dest):
+                if not dest is None and self.state_is_dest(s, dest) \
+                or dest is None and self.state_is_target(s):
                     # found destination !
                     found = s
                     break
@@ -156,6 +168,11 @@ class BoxSolution:
     def state_is_dest(self, state, dest):
         pos,_ = state
         return pos == dest
+
+    def state_is_target(self, state):
+        pos,_ = state
+        return self.level.is_target(pos)
+
 
     def successor_states(self, state):
 

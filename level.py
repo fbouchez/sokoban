@@ -124,6 +124,12 @@ class Level:
         x,y = pos
         return self.structure[y][x] in [SOKOBAN.BOX, SOKOBAN.TARGET_FILLED]
 
+    def is_target (self, pos):
+        x,y = pos
+        return self.structure[y][x] in [SOKOBAN.TARGET, SOKOBAN.TARGET_FILLED]
+
+
+
     def is_empty (self, pos):
         x,y = pos
         return self.structure[y][x] in [SOKOBAN.GROUND, SOKOBAN.TARGET, SOKOBAN.PLAYER]
@@ -247,22 +253,19 @@ class Level:
         return path
 
 
-    def solve_one_box(self, position):
-        return False
+    def solve_one_box(self, source):
+        print ("Moving one box from", source, "to any target")
+        bs = BoxSolution(self)
+        path = bs.move(source, None)
+        return path
+
+
 
 
     def move_one_box(self, source, dest):
         print ("Moving one box from", source, "to", dest)
         bs = BoxSolution(self)
         path = bs.move(source, dest)
-
-        if not path:
-            return False
-
-        # print ("push the box as follows:")
-        # for d in path:
-            # print ("\tfrom",SOKOBAN.DNAMES[d])
-        # print ("now path", list(path))
         return path
 
 
