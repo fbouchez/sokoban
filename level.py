@@ -221,7 +221,7 @@ class Level:
         self.invalidate()
 
     def push_state(self):
-        self.state_stack.append(self.get_current_state)
+        self.state_stack.append(self.get_current_state())
 
 
     def move_player (self, direction):
