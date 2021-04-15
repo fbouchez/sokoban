@@ -34,3 +34,6 @@ def in_dir(pos, d):
 
 def in_opp_dir(pos, d):
     return in_dir(pos, opposite(d))
+
+def horizontal(d):
+    return d == SOKOBAN.LEFT or d == SOKOBAN.RIGHT

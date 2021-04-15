@@ -106,17 +106,8 @@ class Level:
 
             self.single_file_levels = lev
 
-        # if nextlevel:
-            # self.level_number += 1
-            # levelnum = self.level_number
-#
-        # for num,rows in self.single_file_levels:
-            # if num == levelnum:
-                # self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
-                # return
-
         if levelnum > len(self.single_file_levels):
-            raise ValueError("Level does not exist (did you finish them all?)")
+            raise ValueError("Level does not exist ("+str(levelnum)+") (did you finish them all?)")
 
         num,rows = self.single_file_levels[levelnum-1]
 
@@ -165,10 +156,59 @@ class Level:
         x,y = pos
         return self.map[y][x] in [SOKOBAN.TARGET, SOKOBAN.TARGET_FILLED]
 
+    def is_wall (self, pos):
+        x,y = pos
+        return self.map[y][x] == SOKOBAN.WALL
+
+
+
     def is_empty (self, pos):
         x,y = pos
         return self.map[y][x] in [SOKOBAN.GROUND, SOKOBAN.TARGET, SOKOBAN.PLAYER] \
                 and not self.has_box(pos)
+
+
+    def lost_state(self, mboxes=None, boxlist=None):
+        if mboxes is None:
+            mboxes = self.mboxes
+        if boxlist is None:
+            boxlist = self.boxes
+
+        # check if some boxes are in wall corners
+        for box in boxlist:
+            if self.is_target(box): continue
+            prev = False
+            for d in SOKOBAN.AROUND:
+                side = in_dir(box, d)
+                blocked = self.is_wall(side)
+                if prev and blocked:
+                    return True
+                # WARNING: do not check with has_box, since it may be on 
+                # a different state of boxes
+                x,y = side
+                if mboxes[y][x]:
+                    # check if close to a wall
+                    if horizontal(d):
+                        d1 = SOKOBAN.UP
+                        d2 = SOKOBAN.DOWN
+                    else:
+                        d1 = SOKOBAN.LEFT
+                        d2 = SOKOBAN.RIGHT
+                        # check above and below
+                    ub = in_dir(box, SOKOBAN.UP)
+                    us = in_dir(side, SOKOBAN.UP)
+                    db = in_dir(box, SOKOBAN.DOWN)
+                    ds = in_dir(side, SOKOBAN.DOWN)
+                    if self.is_wall(ub) and self.is_wall(us)\
+                    or self.is_wall(db) and self.is_wall(ds):
+                        return True
+
+                prev = blocked
+
+
+        return False
+
+
 
     def get_current_state(self):
         return { 'mboxes': deepcopy(self.mboxes),

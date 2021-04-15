@@ -1,5 +1,5 @@
-# SINGLE_FILE = 'Original'
-SINGLE_FILE = 'Tests'
+SINGLE_FILE = 'Original'
+# SINGLE_FILE = 'Tests'
 
 
 # Normally, no need to modify anything below
@@ -32,7 +32,10 @@ DOWN    = 1
 LEFT    = 2
 RIGHT   = 3
 
+
 OPPOSITE = [DOWN,UP,RIGHT,LEFT] # opposite directions
+
+AROUND = [UP,RIGHT,DOWN,LEFT,UP] # clock-wise directions
 
 DIRS = [(0, -1),  # up
         (0, 1),   # down

@@ -7,6 +7,7 @@ class PlayerInterface:
         self.level = level
         self.mouse_pos = (-1,-1)
         self.font_menu = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 18)
+        self.font_win  = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 32)
         self.txtLevel = "Niveau 1"
         self.colorTxtLevel = SOKOBAN.BLACK
         self.txtCancel = "Annuler le dernier coup (C)"
@@ -18,6 +19,8 @@ class PlayerInterface:
         self.txtMoves = "Coups : 0"
         self.colorTxtMoves = SOKOBAN.BLACK
 
+        self.txtPress = "(appuyez sur une touche pour continuer)"
+        self.colorTxtPress = SOKOBAN.BLACK
 
     def cancel(self):
         ret = self.level.cancel_last_change()
@@ -51,9 +54,25 @@ class PlayerInterface:
 
             return bx, by
 
-    def setTxtColors(self):
+    def show_win(self, window, levelNum):
 
-        pass
+        self.txtWin = "Félicitations, niveau " + str(levelNum) + " terminé"
+        self.txtWinSurface = self.font_win.render(self.txtWin, True, self.colorTxtLevel, SOKOBAN.WHITE)
+
+        self.posTxtWin = ((SOKOBAN.WINDOW_WIDTH // 2) - (self.txtWinSurface.get_width() // 2),
+                          (self.txtWinSurface.get_height() +10))
+        window.blit(self.txtWinSurface, self.posTxtWin)
+
+        self.txtPressSurface = self.font_menu.render(self.txtPress, True, self.colorTxtPress, SOKOBAN.WHITE)
+        self.posTxtPress = ((SOKOBAN.WINDOW_WIDTH // 2) - (self.txtPressSurface.get_width() // 2),
+                          (self.txtWinSurface.get_height() + self.txtPressSurface.get_height()+40))
+        window.blit(self.txtPressSurface, self.posTxtPress)
+
+
+
+        self.txtPress = "(appuyez sur une touche pour continuer)"
+        self.colorTxtPress = SOKOBAN.BLACK
+
 
     def render(self, window, levelNum, level):
         self.txtLevel = "Niveau " + str(levelNum)

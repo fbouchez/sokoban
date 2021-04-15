@@ -3,29 +3,40 @@ import json
 class Scores:
     def __init__(self, game):
         self.game = game
+        self.scores = None
 
     def load(self):
         try:
             with open("scores", "r") as data:
-                scores = json.load(data)
-                self.game.index_level = scores["level"]
-                self.game.level_style = scores["style"]
+                self.scores = json.load(data)
         except FileNotFoundError:
             print("No saved data")
+            self.scores = {
+                    'style': 'single_file',
+                    'last_level': 0,
+                    'levels': []
+            }
+
+    def last_level(self):
+        return self.scores['last_level']
+
+    def level_style(self):
+        return self.scores['style']
 
     def save(self):
         # Saving score in file only when current level > saved level
-        try:
-            with open("scores", "r") as data:
-                scores = json.load(data)
-                saved_level = scores["level"]
-        except FileNotFoundError:
-            saved_level = 0
+        moves = self.game.level.num_moves
+        idx   = self.game.index_level
 
-        if saved_level < self.game.index_level:
-            data = {
-                "level": self.game.index_level,
-                "style": self.game.level_style
-            }
-            with open("scores", "w") as scores:
-                json.dump(data, scores, ensure_ascii=False, indent=4)
+        if idx > self.last_level():
+            self.scores['last_level'] = idx
+
+        lev = self.scores['levels']
+        while len(lev) < idx+1:
+            lev.append(None)
+
+        if lev[idx] is None or lev[idx] > moves:
+            lev[idx] = moves
+
+        with open("scores", "w") as f:
+            json.dump(self.scores, f, ensure_ascii=False, indent=4)

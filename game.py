@@ -25,14 +25,14 @@ class Game:
         self.load_textures()
         self.player = None
         self.scores = Scores(self)
+        self.scores.load()
 
         if continueGame:
-            self.scores.load()
+            self.index_level = self.scores.last_level()
         else:
-            self.index_level = 1
-            self.level_style = 'single_file'
+            self.index_level = 0
 
-        self.load_level()
+        self.load_level(nextLevel=True)
         self.play = True
         self.player_interface = PlayerInterface(self.player, self.level)
         self.visual = False
@@ -70,8 +70,10 @@ class Game:
                 SOKOBAN.HERROR :surfError,
                 }
 
-    def load_level(self):
-        self.level = Level(self, self.index_level, self.level_style)
+    def load_level(self, nextLevel=False):
+        if nextLevel:
+            self.index_level += 1
+        self.level = Level(self, self.index_level, self.scores.level_style())
         self.board = pygame.Surface((self.level.width, self.level.height))
         if self.player:
             self.player_interface.level = self.level
@@ -105,7 +107,7 @@ class Game:
             pygame.time.wait(SOKOBAN.MOVE_DELAY)
 
 
-    def animate_move_box(self, box, path):
+    def animate_move_boxes(self, path):
         self.level.dij = None
         for (box,d) in path:
             print ("now path is push", box, "from", SOKOBAN.DNAMES[d])
@@ -160,7 +162,7 @@ class Game:
                 if not path:
                     self.flash_red(selpos)
                 else:
-                    self.animate_move_box(selpos, path)
+                    self.animate_move_boxes(selpos, path)
 
             else:
                 # now we should only select boxes
@@ -195,18 +197,18 @@ class Game:
                     self.player_interface.colorTxtCancel = SOKOBAN.BLACK
 
                 if self.has_win():
-                    self.index_level += 1
-                    self.scores.save()
-                    self.load_level()
+                    self.level_win()
+
+                if self.level.lost_state():
+                    print ("Level is lost ! you have a box in a corner or stuck with another box...")
 
             elif event.key == K_k: # cheat key :-)
-                    self.index_level += 1
-                    self.scores.save()
-                    self.load_level()
+                    self.load_level(nextLevel=True)
 
             elif event.key == K_r:
                 # Restart current level
-                self.load_level()
+                self.load_level(nextLevel=False)
+
             elif event.key == K_v:
                 # Vizualize possible moves
                 self.toggle_visualize()
@@ -222,7 +224,16 @@ class Game:
                 if not path:
                     self.flash_red((8,3))
                 else:
-                    self.animate_move_box((8,3), path)
+                    self.animate_move_boxes(path)
+
+            # "all box save" key
+            elif event.key == K_a:
+                path = self.level.solve_all_boxes()
+                if not path:
+                    self.flash_red((8,3))
+                else:
+                    self.animate_move_boxes(path)
+
 
 
         elif event.type == MOUSEBUTTONUP:
@@ -236,6 +247,24 @@ class Game:
             self.player_interface.mouse_pos = event.pos
         # else:
             # print ("Unknown event:", event)
+            #
+
+    def wait_key(self):
+        while True:
+            event = pygame.event.wait()
+            if event.type == KEYDOWN:
+                break
+
+
+    def level_win(self):
+
+        self.scores.save()
+        self.player_interface.show_win(self.window, self.index_level)
+        pygame.display.flip()
+        self.wait_key()
+
+        self.load_level(nextLevel=True)
+
 
     def update_screen(self):
         pygame.draw.rect(self.board, SOKOBAN.WHITE, (0,0, self.level.width * SOKOBAN.SPRITESIZE, self.level.height * SOKOBAN.SPRITESIZE))

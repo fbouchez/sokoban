@@ -112,7 +112,6 @@ class BoxSolution:
 
         # find a random position for player
         for i,s in enumerate(allsides):
-            print ('enum', i, s)
             for d,f in enumerate(s):
                 if f:
                     b=tblist[i]
@@ -134,7 +133,9 @@ class BoxSolution:
                 return False
         return True
 
-
+    def lost_state(self, state):
+        ((tboxes, allsides), tblist) = state
+        return self.level.lost_state(tboxes, tblist)
 
     def solve(self):
         """
@@ -171,20 +172,28 @@ class BoxSolution:
 
         found = None
 
+        states_explored = 0
+
         while not found and not fifo.empty():
             state = fifo.get()
+            states_explored += 1
+
             s_hash, s_boxes = state
 
             verbose ("Looking for successors of", state)
             self.set_level_state(state)
-            print('blist', self.boxlist)
+
+            if states_explored % 100 == 0:
+                print ("states explored:", states_explored)
+                self.level.game.update_screen()
+
             succs = self.successor_states(state)
 
             verbose ("successors:", succs)
 
             for st,(box,direct) in succs:
-                # print ("\t",d,s)
                 sthash, stboxes = st
+                # print ("retrieved succ:", st)
 
                 if sthash not in states:
                     states[sthash] = {
@@ -195,13 +204,18 @@ class BoxSolution:
                     # stores current box list +
                     # previous state + box player has to push & in which 
                     # direction box
+
+                    if self.acceptable_state(st):
+                        # found destination !
+                        found = st
+                        break
+                    if self.lost_state(st):
+                        # self.set_level_state(st)
+                        # self.level.game.update_screen()
+                        # self.level.game.wait_key()
+                        continue
+
                     fifo.put (st)
-
-                if self.acceptable_state(st):
-                    # found destination !
-                    found = st
-                    break
-
 
         if not found:
             path = None
@@ -255,8 +269,6 @@ class BoxSolution:
         self.level.player_position = player
         self.level.invalidate()
 
-
-        print ('boxlist:', self.boxlist)
         boxi = self.boxlist.index(player)
         self.boxlist[boxi] = box
 
