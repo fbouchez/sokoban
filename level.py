@@ -12,7 +12,7 @@ class Level:
         self.single_file_levels = None
         self.level_number = 0
         self.boxes = []
-        self.load(level_to_load, levelstyle)
+        self.success = self.load(level_to_load, levelstyle)
 
     def place_box(self, box):
         x,y=box
@@ -82,9 +82,13 @@ class Level:
 
 
     def load_file_by_file(self, levelnum, nextlevel=False):
-        with open("assets/levels/level_" + str(levelnum) + ".txt") as level_file:
-            rows = level_file.read().split('\n')
-        self.parse_rows(rows, SOKOBAN.SYMBOLS_MODERN)
+        try:
+            with open("assets/levels/level_" + str(levelnum) + ".txt") as level_file:
+                rows = level_file.read().split('\n')
+            self.parse_rows(rows, SOKOBAN.SYMBOLS_MODERN)
+            return True
+        except FileNotFoundError:
+            return False
 
 
     def load_single_file(self, levelnum, nextlevel=True):
@@ -107,21 +111,23 @@ class Level:
             self.single_file_levels = lev
 
         if levelnum > len(self.single_file_levels):
-            raise ValueError("Level does not exist ("+str(levelnum)+") (did you finish them all?)")
+            return False
 
         num,rows = self.single_file_levels[levelnum-1]
 
         self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
-        return
-        raise ValueError("level number not found")
+        return True
 
 
     def load(self, levelnum, levelstyle='single_file'):
         verbose ('Loading level', levelnum)
         if levelstyle == 'file_by_file':
-            self.load_file_by_file(levelnum=levelnum)
+            ret = self.load_file_by_file(levelnum=levelnum)
         elif levelstyle == 'single_file':
-            self.load_single_file(levelnum, nextlevel=False)
+            ret = self.load_single_file(levelnum, nextlevel=False)
+
+        if not ret:
+            return False
 
         self.width = self.map_width * SOKOBAN.SPRITESIZE
         self.height = self.map_height * SOKOBAN.SPRITESIZE
@@ -137,6 +143,7 @@ class Level:
 
         # no previous move to cancel
         self.state_stack = []
+        return True
 
     def reset_highlight (self):
         for y in range(self.map_height):

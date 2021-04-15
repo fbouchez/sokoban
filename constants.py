@@ -1,5 +1,5 @@
-# SINGLE_FILE = 'Original'
-SINGLE_FILE = 'Tests'
+SINGLE_FILE = 'Original'
+# SINGLE_FILE = 'Tests'
 
 
 # Normally, no need to modify anything below

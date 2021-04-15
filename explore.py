@@ -4,6 +4,7 @@ import constants as SOKOBAN
 from utils import *
 import queue
 import heapq
+from math import sqrt
 
 
 
@@ -225,8 +226,7 @@ class BoxSolution:
                 self.level.game.update_screen()
 
             self.set_level_state(state)
-            self.level.game.debug()
-
+            # self.level.game.debug()
             succs = self.successor_states(state)
 
 
@@ -282,12 +282,16 @@ class BoxSolution:
         Lower bound for approximated number of box movements for 
         A*: sum of all manhattan distances to random target
         """
-        return 0
+        # just change to 0 to get Dijkstra
+        # return 0
         _, sblist, _ = state
 
         hdist = 0
         for box in sblist:
-            hdist += self.manhattan(box,self.target)
+            m =self.manhattan(box,self.target)
+            hdist += m*m  ## good for open levels
+            # hdist += m
+            # hdist += int(sqrt(m))
         return hdist
 
 
@@ -313,12 +317,12 @@ class BoxSolution:
             if flag: # this side is reachable by player
                 opp=in_opp_dir(box,d)
                 if self.level.is_empty(opp):
-                    self.level.dij.show_distances()
-                    print ('distance from', player, 'to', in_dir(box,d), SOKOBAN.DNAMES[d])
+                    # self.level.dij.show_distances()
+                    # print ('distance from', player, 'to', in_dir(box,d), SOKOBAN.DNAMES[d])
                     dist = self.level.dij.distance(in_dir(box,d))
 
                     stsuc = self.create_successor(box=opp, player=box) # player position will be at box current one
-                    print ('distance here:', dist)
+                    # print ('distance here:', dist)
                     succs.append((stsuc,(box,d),dist+1)) # also store the box & direction pushed from
         return succs
 

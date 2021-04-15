@@ -74,6 +74,12 @@ class Game:
         if nextLevel:
             self.index_level += 1
         self.level = Level(self, self.index_level, self.scores.level_style())
+
+        if not self.level.success:
+            self.play = False
+            return
+
+
         self.board = pygame.Surface((self.level.width, self.level.height))
         if self.player:
             self.player_interface.level = self.level
@@ -93,7 +99,8 @@ class Game:
     def start(self):
         while self.play:
             self.process_event(pygame.event.wait())
-            self.update_screen()
+            if self.play:
+                self.update_screen()
 
 
     def animate_move_to(self, position):
@@ -110,16 +117,13 @@ class Game:
     def animate_move_boxes(self, path):
         self.level.dij = None
         for (box,d) in path:
-            print ("now path is push", box, "from", SOKOBAN.DNAMES[d])
+            verbose ("now path is push", box, "from", SOKOBAN.DNAMES[d])
             pos = self.level.side_box(box, d)
 
             self.animate_move_to(pos)
-
-
             oppd = SOKOBAN.OPPOSITE[d]
-            print ("opposite direction:", SOKOBAN.DNAMES[oppd])
 
-            print ("current player pos", self.level.player_position)
+            # print ("current player pos", self.level.player_position)
             ret = self.player.move(oppd)
             assert (ret) # should have changed the level
             self.update_screen()
@@ -127,7 +131,10 @@ class Game:
 
             # new box position
             box = self.level.side_box(box, oppd)
-            print ("new box pos", box)
+            verbose ("New box position", box)
+
+        if self.has_win():
+            self.level_win()
 
 
     def flash_red (self, pos):
