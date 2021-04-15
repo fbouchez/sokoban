@@ -43,15 +43,20 @@ class Game:
         self.start()
 
     def load_textures(self):
+        ground = pygame.image.load('assets/images/stoneCenter.png').convert_alpha()
+
         self.textures = {
             SOKOBAN.WALL: pygame.image.load('assets/images/wall.png').convert_alpha(),
             SOKOBAN.BOX: pygame.image.load('assets/images/box.png').convert_alpha(),
-            SOKOBAN.TARGET: pygame.image.load('assets/images/target.png').convert_alpha(),
-            SOKOBAN.TARGET_FILLED: pygame.image.load('assets/images/valid_box.png').convert_alpha(),
+            SOKOBAN.TARGET: ground,
+            SOKOBAN.TARGETOVER: pygame.image.load('assets/images/target.png').convert_alpha(),
+            # SOKOBAN.TARGETOVER: pygame.image.load('assets/images/target.png').convert(),
+            # SOKOBAN.TARGET_FILLED: pygame.image.load('assets/images/valid_box.png').convert_alpha(),
+            SOKOBAN.TARGET_FILLED: pygame.image.load('assets/images/box_correct.png').convert_alpha(),
             SOKOBAN.PLAYER: pygame.image.load('assets/images/player_sprites.png').convert_alpha(),
-            SOKOBAN.GROUND: pygame.image.load('assets/images/stoneCenter.png').convert_alpha()
+            SOKOBAN.GROUND: ground
         }
-        # self.textures[SOKOBAN.TARGET].set_alpha(12) # does not seem to have any effect
+        self.textures[SOKOBAN.TARGETOVER].set_alpha(128) # does not seem to have any effect
 
         def surfhigh (color, alpha):
             surf = pygame.Surface((SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))

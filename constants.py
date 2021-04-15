@@ -33,6 +33,7 @@ TARGET_FILLED   = 4
 PLAYER          = 5
 AIR             = 6
 GROUND          = 7
+TARGETOVER      = 8 # just for the texture overlay
 
 SYMBOLS_ORIGINALS = ['','#','$','.','*','@',' ','']
 SYMBOLS_MODERN    = ['','X','*','.','&','@',' ','']

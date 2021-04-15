@@ -427,10 +427,7 @@ class Level:
             return False
 
         state = self.state_stack.pop()
-
         self.restore_state(state)
-
-
         return self.state_stack != []
 
 
@@ -438,20 +435,25 @@ class Level:
 
         for y in range(self.map_height):
             for x in range(self.map_width):
-                if self.map[y][x] == SOKOBAN.TARGET:
-                    window.blit(textures[SOKOBAN.GROUND], (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE))
-                    window.blit(textures[self.map[y][x]], (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE))
-
-                elif self.map[y][x] in textures:
-                    window.blit(textures[self.map[y][x]], (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE))
-                else:
-                    pygame.draw.rect(window, SOKOBAN.WHITE, (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
+                pos = (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE)
 
                 if self.mboxes[y][x]:
-                    window.blit(textures[SOKOBAN.BOX], (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE))
+                    if self.is_target((x,y)):
+                        window.blit(textures[SOKOBAN.TARGET_FILLED], pos)
+                    else:
+                        window.blit(textures[SOKOBAN.BOX], pos)
+
+                elif self.map[y][x] in textures:
+                    window.blit(textures[self.map[y][x]], pos)
+                    if self.is_target((x,y)):
+                        window.blit(textures[SOKOBAN.TARGETOVER], pos)
+
+                else:
+                    pygame.draw.rect(window, SOKOBAN.WHITE, (pos[0], pos[1], SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
+
 
                 h = self.mhighlight[y][x]
                 if h:
-                    window.blit(highlights[h], (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE))
+                    window.blit(highlights[h], pos)
 
 
