@@ -24,6 +24,7 @@ class Game:
         self.window = window
         self.load_textures()
         self.player = None
+        self.player_interface = None
         self.scores = Scores(self)
         self.scores.load()
 
@@ -34,7 +35,7 @@ class Game:
 
         self.load_level(nextLevel=True)
         self.play = True
-        self.player_interface = PlayerInterface(self.player, self.level)
+        self.player_interface = PlayerInterface(self, self.player, self.level)
         self.visual = False
         self.has_changed = False
         self.selected_position = None
@@ -74,6 +75,8 @@ class Game:
         if nextLevel:
             self.index_level += 1
         self.level = Level(self, self.index_level, self.scores.level_style())
+        if self.player_interface:
+            self.player_interface.txtCancel.change_color(SOKOBAN.GREY)
 
         if not self.level.success:
             self.play = False
@@ -192,6 +195,7 @@ class Game:
             pygame.quit()
             sys.exit()
         elif event.type == KEYDOWN:
+            self.cancel_selected()
             if event.key == K_ESCAPE:
                 # Quit game
                 self.play = False
@@ -201,13 +205,13 @@ class Game:
                 # Move player
                 self.has_changed = self.player.move(direction)
                 if self.has_changed:
-                    self.player_interface.colorTxtCancel = SOKOBAN.BLACK
+                    self.player_interface.txtCancel.change_color(SOKOBAN.BLACK)
 
                 if self.has_win():
                     self.level_win()
 
                 if self.level.lost_state():
-                    print ("Level is lost ! you have a box in a corner or stuck with another box...")
+                    self.player_interface.lost_state()
 
             elif event.key == K_k: # cheat key :-)
                     self.load_level(nextLevel=True)
@@ -219,10 +223,10 @@ class Game:
             elif event.key == K_v:
                 # Vizualize possible moves
                 self.toggle_visualize()
+
             elif event.key == K_c:
                 # Cancel last move
-                self.level.cancel_last_change()
-                self.player_interface.colorTxtCancel = SOKOBAN.GREY
+                self.player_interface.cancel()
 
             # "Test" key
             elif event.key == K_t:
@@ -243,8 +247,8 @@ class Game:
 
 
 
-        elif event.type == MOUSEBUTTONUP:
-            position = self.player_interface.click(event.pos, self.level, self)
+        elif event.type == MOUSEBUTTONDOWN:
+            position = self.player_interface.click(event.pos, self.level)
             if position:
                 self.click_pos(position)
             else:
@@ -259,7 +263,7 @@ class Game:
     def wait_key(self):
         while True:
             event = pygame.event.wait()
-            if event.type == KEYDOWN:
+            if event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN:
                 break
 
 

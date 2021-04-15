@@ -221,11 +221,11 @@ class BoxSolution:
 
             data = states[s_hash]
 
+            self.set_level_state(state)
             if states_explored % 100 == 0:
                 print ("states explored:", states_explored)
                 self.level.game.update_screen()
 
-            self.set_level_state(state)
             # self.level.game.debug()
             succs = self.successor_states(state)
 

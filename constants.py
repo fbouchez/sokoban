@@ -1,5 +1,5 @@
-SINGLE_FILE = 'Original'
-# SINGLE_FILE = 'Tests'
+# SINGLE_FILE = 'Original'
+SINGLE_FILE = 'Tests'
 
 
 # Normally, no need to modify anything below
@@ -10,6 +10,18 @@ SPRITESIZE  = 32
 
 WINDOW_WIDTH  = 1024
 WINDOW_HEIGHT = 768
+
+# Text alignment
+#vertical
+ATOP =0
+AMID =1
+ABOTTOM=2
+#horizontal
+ALEFT=3
+ACENTER=4
+ARIGHT=5
+ACUSTOM=6
+
 
 
 # Blocks

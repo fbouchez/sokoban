@@ -181,11 +181,23 @@ class Level:
         if boxlist is None:
             boxlist = self.boxes
 
+        def is_full(p):
+            x,y=p
+            return self.is_wall(p) or mboxes[y][x]
+
+
         # check if some boxes are in wall corners
         for box in boxlist:
+            # disp = False
+            # if box == (10,5):
+                # disp=True
+                # print ("TESTISANOGEU")
+
             if self.is_target(box): continue
             prev = False
             for d in SOKOBAN.AROUND:
+                # if disp:
+                    # print ("cheking", SOKOBAN.DNAMES[d])
                 side = in_dir(box, d)
                 blocked = self.is_wall(side)
                 if prev and blocked:
@@ -194,6 +206,8 @@ class Level:
                 # a different state of boxes
                 x,y = side
                 if mboxes[y][x]:
+                    # if disp:
+                        # print ("there is a box copain", x,y)
                     # check if close to a wall
                     if horizontal(d):
                         d1 = SOKOBAN.UP
@@ -202,12 +216,12 @@ class Level:
                         d1 = SOKOBAN.LEFT
                         d2 = SOKOBAN.RIGHT
                         # check above and below
-                    ub = in_dir(box, SOKOBAN.UP)
-                    us = in_dir(side, SOKOBAN.UP)
-                    db = in_dir(box, SOKOBAN.DOWN)
-                    ds = in_dir(side, SOKOBAN.DOWN)
-                    if self.is_wall(ub) and self.is_wall(us)\
-                    or self.is_wall(db) and self.is_wall(ds):
+                    ub = in_dir(box, d1)
+                    us = in_dir(side,d1)
+                    db = in_dir(box, d2)
+                    ds = in_dir(side,d2)
+                    if is_full(ub) and is_full(us)\
+                    or is_full(db) and is_full(ds):
                         return True
 
                 prev = blocked
