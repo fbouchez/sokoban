@@ -3,6 +3,7 @@
 import pygame
 from pygame.locals import *
 import constants as SOKOBAN
+from utils import *
 from game import *
 import time
 
@@ -48,7 +49,17 @@ class Menu:
         window.blit(self.quit_game_txt_surface, self.quit_game_txt_position)
 
 
+def parse_options():
+    for o in sys.argv:
+        if o == "-v" or o == "--verbose":
+            set_verbose()
+
 def main():
+
+    parse_options()
+
+    verbose("Verbose mode activated")
+
     pygame.init()
     pygame.key.set_repeat(100, 100)
     pygame.display.set_caption("Sokoban Game")

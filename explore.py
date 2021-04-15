@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 import constants as SOKOBAN
+from utils import *
 import queue
 
 
@@ -16,8 +17,6 @@ class Dijkstra:
         init_x, init_y = source
 
         allowed = [SOKOBAN.GROUND, SOKOBAN.TARGET, SOKOBAN.AIR]
-        if not boxes_block:
-            allowed += [SOKOBAN.BOX, SOKOBAN.TARGET_FILLED]
 
         fifo = queue.Queue()
         fifo.put (source)
@@ -31,11 +30,12 @@ class Dijkstra:
         while not fifo.empty():
             x,y = fifo.get()
             for d,(mx,my) in enumerate(SOKOBAN.DIRS):
-                # print ('trying y:', y+my, 'x:', x+mx)
+                # print ('verbose y:', y+my, 'x:', x+mx)
                 if mark[y+my][x+mx]:
                     continue
 
-                if self.level.structure[y+my][x+mx] not in allowed:
+                if self.level.map[y+my][x+mx] not in allowed \
+                or boxes_block and self.level.has_box((x+mx,y+my)):
                     continue
 
                 mark[y+my][x+mx] = True
@@ -60,65 +60,108 @@ class Dijkstra:
         assert (self.marks)
         path = []
         current = dest
-        print ('source:', source, 'dest:', dest)
+        verbose ('source:', source, 'dest:', dest)
         while current != source:
             x,y = current
-            print ('path:', current)
+            verbose ('path:', current)
             current,move,direct = self.preds[y][x]
             path.append(direct)
 
-        # print ('path:', current)
         return reversed(path)
 
 
 class BoxSolution:
-    def __init__(self, level):
+    def __init__(self, level, boxlist, dest=None):
         self.level = level
+        self.boxlist = boxlist
+        # these are the boxes we are allowed to move
+        # others are considered walls
+        self.dest=dest
+        if dest:
+            assert (len(boxlist) == 1)
 
-    def solve(self, pos):
-        """ Solve the sokoban for one box
+
+
+    def save_level_state(self, boxes):
+        self.saveplayer = self.level.position_player
+        self.saveboxes = []
+
+    def restore_level_state(self):
+        self.level.position_player = self.saveplayer
+
+        for (x,y),old in self.saveboxes:
+            self.level.structure[y][x] = old
+
+    def make_state(self):
+        tboxes = tupleit(self.level.mboxes)
+        tblist = tupleit(self.boxlist)
+
+        # self.level.game.update_screen()
+        allsides = self.level.box_attainable_sides(self.boxlist)
+
+        return ((tboxes, allsides), tblist)
+
+
+    def set_level_state(self, state):
+        ((tboxes, allsides), tblist) = state
+        for y in range(self.level.map_height):
+            for x in range(self.level.map_width):
+                self.level.mboxes[y][x] = tboxes[y][x]
+        self.level.boxes = list(tblist)
+        self.boxlist=self.level.boxes
+
+        # find a random position for player
+        for i,s in enumerate(allsides):
+            print ('enum', i, s)
+            for d,f in enumerate(s):
+                if f:
+                    b=tblist[i]
+                    p=in_dir(b,d)
+                    self.level.set_player(p)
+                    return
+        assert(False)
+
+    def acceptable_state(self, state):
+        ((tboxes, allsides), tblist) = state
+
+        if not self.dest is None:
+            box = tblist[0]
+            return box == self.dest
+
+        # otherwise, check all boxes are on targets
+        for box in tblist:
+            if not self.level.is_target(box):
+                return False
+        return True
+
+
+
+    def solve(self):
         """
-        pass
-
-
-    def move(self, source, dest=None):
-        """
-        Tries find a series of movement to move box from source to dest without 
+        Tries find a series of movements to move box from source to dest without 
         moving other boxes
         """
-        assert (self.level.is_box(source))
+        for b in self.boxlist:
+            assert (self.level.has_box(b))
 
-        if dest != None and not self.level.is_empty(dest):
-            return None
-
-        succ = self.level.compute_box_successors(source)
-        if not succ:
-            # box is not attainable
+        if self.dest != None and not self.level.is_empty(self.dest):
             return None
 
         # save current state of level w.r.t box & player
-        saveplayer = self.level.position_player
+        self.save_state = self.level.get_current_state()
 
-        x,y = source
-        save_box = self.level.structure[y][x] # can be either target or ground
-        if save_box == SOKOBAN.BOX:
-            self.level.structure[y][x] = SOKOBAN.GROUND
-        elif save_box == SOKOBAN.TARGET_FILLED:
-            self.level.structure[y][x] = SOKOBAN.TARGET
-        else:
-            raise ValueError("box problem")
+        # initial state: boxes + their attainable sides
+        init_state = self.make_state()
+        init_hash, init_boxes = init_state
 
-        # self.level.dij = None
+        verbose ('init state:', init_state)
+        states = {}
+        states[init_hash] = {
+                'boxes': init_boxes,
+                'prev' : None,
+                'push' : None
+                }
 
-
-
-        # initial state: box + attainable sides
-        sides = self.level.box_attainable_sides(source)
-
-        init_state = (source, sides)
-        print ('init state:', init_state)
-
-        states = {init_state: 0}
 
         # explore neighbouring states
         # for now, no weight
@@ -126,28 +169,38 @@ class BoxSolution:
         fifo = queue.Queue()
         fifo.put (init_state)
 
-
         found = None
 
         while not found and not fifo.empty():
             state = fifo.get()
+            s_hash, s_boxes = state
 
-            box, sides = state
-            # print ("Looking for successors of", state)
+            verbose ("Looking for successors of", state)
+            self.set_level_state(state)
+            print('blist', self.boxlist)
             succs = self.successor_states(state)
 
-            for d,s in succs:
+            verbose ("successors:", succs)
+
+            for st,(box,direct) in succs:
                 # print ("\t",d,s)
-                if s not in states:
-                    states[s] = (state,d) # previous state + direction player has to push the box
-                    fifo.put (s)
+                sthash, stboxes = st
 
-                if not dest is None and self.state_is_dest(s, dest) \
-                or dest is None and self.state_is_target(s):
+                if sthash not in states:
+                    states[sthash] = {
+                            'boxes': stboxes,
+                            'prev' : s_hash,
+                            'push' : (box,direct)
+                            }
+                    # stores current box list +
+                    # previous state + box player has to push & in which 
+                    # direction box
+                    fifo.put (st)
+
+                if self.acceptable_state(st):
                     # found destination !
-                    found = s
+                    found = st
                     break
-
 
 
         if not found:
@@ -157,70 +210,83 @@ class BoxSolution:
             path = self.path_from(init_state, found, states)
 
         # restore level
-        self.level.position_player = saveplayer 
-        x,y = source
-        self.level.structure[y][x] = save_box
-        self.level.dij = None
+        self.level.restore_state(self.save_state)
 
         return path
 
 
-    def state_is_dest(self, state, dest):
-        pos,_ = state
-        return pos == dest
-
-    def state_is_target(self, state):
-        pos,_ = state
-        return self.level.is_target(pos)
-
-
     def successor_states(self, state):
 
-        box, sides = state
+        ((sboxes, allsides), sblist) = state
+        alls = []
+        for i,b in enumerate(sblist):
+            succs = self.successor_states_one_box(b, allsides[i])
+            alls += succs
+        return alls
+
+
+    def successor_states_one_box(self, box, sides):
+        box, sides
         bx,by = box
         succs = []
 
-        for d,(mx,my) in enumerate(SOKOBAN.DIRS):
-            if sides[d]:
-                # this side is reachable by player
-                opposite = (bx-mx,by-my)
-                if self.level.is_empty(opposite):
-                    suc = self.create_successor(opposite, box) # player position will be at box current one
-                    succs.append((d,suc)) # also store the direction used to push from
+        for d,flag in enumerate(sides):
+            if flag: # this side is reachable by player
+                opp=in_opp_dir(box,d)
+                if self.level.is_empty(opp):
+                    stsuc = self.create_successor(box=opp, player=box) # player position will be at box current one
+                    succs.append((stsuc,(box,d))) # also store the box & direction pushed from
         return succs
 
 
     def create_successor(self, box, player):
+        """
+        Create successor state, as if player has just pushed a box.
+        Hence box is the new position, and player is where the box
+        was before it was pushed.
+        """
 
-        # x,y = player
-        # saveplayer = self.level.structure[y][x]
-        # self.level.structure[y][x] = SOKOBAN.PLAYER
-        bx,by = box
-        savebox = self.level.structure[by][bx]
-        self.level.structure[by][bx] = SOKOBAN.BOX
-        self.level.position_player = player
+        # save current state
+        saveplayer = self.level.player_position
 
-
-        self.level.dij = None
-        sides = self.level.box_attainable_sides(box)
-
-        # self.level.structure[y][x] = saveplayer
-        self.level.structure[by][bx] = savebox
-
-        return (box, sides)
+        # prepare successor state
+        self.level.place_box(box)
+        self.level.clear_box(player)
+        self.level.player_position = player
+        self.level.invalidate()
 
 
-    def path_from(self, source, dest, states):
+        print ('boxlist:', self.boxlist)
+        boxi = self.boxlist.index(player)
+        self.boxlist[boxi] = box
 
-        current = dest
+        st = self.make_state()
+
+        # restore state
+        self.level.player_position = saveplayer
+        self.level.place_box(player)
+        self.level.clear_box(box)
+        self.boxlist[boxi] = player
+
+        return st
+
+
+    def path_from(self, source_state, found_state, states):
+
+
+        (source_hash, _) = source_state
+        (found_hash, _) = found_state
+
+        current = found_hash
 
         path = []
 
-        while current != source:
+        while current != source_hash:
 
-            prev, d = states[current]
-            path.append(d)
-            current = prev
+            node = states[current]
+
+            path.append(node['push'])
+            current = node['prev']
 
         return reversed(path)
 

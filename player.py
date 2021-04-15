@@ -25,7 +25,7 @@ class Player:
         elif self.direction == SOKOBAN.UP:
             top = SOKOBAN.SPRITESIZE * 3
 
-        x,y = self.level.position_player
+        x,y = self.level.player_position
 
         areaPlayer = pygame.Rect((0, top), (32, 32))
         window.blit(textures[SOKOBAN.PLAYER], (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE), area=areaPlayer)

@@ -71,7 +71,7 @@ class Game:
                 }
 
     def load_level(self):
-        self.level = Level(self.index_level, self.level_style)
+        self.level = Level(self, self.index_level, self.level_style)
         self.board = pygame.Surface((self.level.width, self.level.height))
         if self.player:
             self.player_interface.level = self.level
@@ -107,8 +107,8 @@ class Game:
 
     def animate_move_box(self, box, path):
         self.level.dij = None
-        for d in path:
-            print ("now path is ", SOKOBAN.DNAMES[d])
+        for (box,d) in path:
+            print ("now path is push", box, "from", SOKOBAN.DNAMES[d])
             pos = self.level.side_box(box, d)
 
             self.animate_move_to(pos)
@@ -117,7 +117,7 @@ class Game:
             oppd = SOKOBAN.OPPOSITE[d]
             print ("opposite direction:", SOKOBAN.DNAMES[oppd])
 
-            print ("current player pos", self.level.position_player)
+            print ("current player pos", self.level.player_position)
             ret = self.player.move(oppd)
             assert (ret) # should have changed the level
             self.update_screen()
@@ -168,7 +168,7 @@ class Game:
             return
 
         # nothing selected yet
-        if self.level.is_box(position):
+        if self.level.has_box(position):
             # selecting a box
             self.selected_position = (SOKOBAN.BOX, position)
             self.level.highlight([position], SOKOBAN.HSELECT)
@@ -212,7 +212,7 @@ class Game:
                 self.toggle_visualize()
             elif event.key == K_c:
                 # Cancel last move
-                self.level.cancel_last_move()
+                self.level.cancel_last_change()
                 self.player_interface.colorTxtCancel = SOKOBAN.GREY
 
             # "Test" key
@@ -261,9 +261,11 @@ class Game:
 
     def has_win(self):
         nb_missing_target = 0
-        for y in range(len(self.level.structure)):
-            for x in range(len(self.level.structure[y])):
-                if self.level.structure[y][x] == SOKOBAN.TARGET:
-                    nb_missing_target += 1
+
+        for y in range(self.level.map_height):
+            for x in range(self.level.map_width):
+                if self.level.is_target((x,y)):
+                    if not self.level.has_box((x,y)):
+                        nb_missing_target += 1
 
         return nb_missing_target == 0

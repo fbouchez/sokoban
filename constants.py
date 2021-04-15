@@ -1,5 +1,5 @@
-SINGLE_FILE = 'Original'
-# SINGLE_FILE = 'Tests'
+# SINGLE_FILE = 'Original'
+SINGLE_FILE = 'Tests'
 
 
 # Normally, no need to modify anything below
@@ -58,3 +58,5 @@ HERROR  = 4
 # Time delays
 MOVE_DELAY = 3 # milliseconds
 FLASH_DELAY = 100 # milliseconds
+
+
