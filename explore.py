@@ -4,6 +4,7 @@ import constants as SOKOBAN
 from utils import *
 import queue
 import heapq
+from time import time
 from math import sqrt
 
 
@@ -211,20 +212,36 @@ class BoxSolution:
 
         states_explored = 0
 
+        start_time = time()
+
         while not found and prioqueue != []:
             _, dist, state = heapq.heappop(prioqueue)
-
-            states_explored += 1
-
             s_hash, s_boxes, s_player = state
-
             verbose ("Looking for successors of boxes:", s_boxes, "player:", s_player, "distance:", dist)
 
             data = states[s_hash]
-
             self.set_level_state(state)
-            if states_explored % 100 == 0:
-                cancelled = self.level.game.update_check_cancel(states_explored)
+
+            states_explored += 1
+
+
+            # if states_explored % 1000 == 0:
+            # if states_explored % 200 == 0:
+            # if states_explored % 50 == 0:
+            # if states_explored % 20 == 0:
+
+            if states_explored % 28 == 0:
+                if states_explored % 140 == 0:
+                    self.level.game.update_screen()
+
+                # update text and check cancel
+                gen = "Explorés: {exp}     Temps: {el:.2f}s     Vitesse: {sp:.2f} états/s"
+
+                elapsed = time() - start_time
+                speed = states_explored/elapsed
+                message = gen.format(exp=states_explored, el=elapsed, sp=speed)
+
+                cancelled = self.level.game.check_cancel(message)
                 if cancelled: break
 
             # self.level.game.debug()

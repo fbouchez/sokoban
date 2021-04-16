@@ -14,6 +14,7 @@ class Text:
         self.surf = None
         self.update(text)
 
+
     def change_color(self, color):
         self.color = color
         self.update()
@@ -130,42 +131,50 @@ class Menu:
 
 
 
-class PlayerInterface:
+class Interface:
     def __init__(self, game, player, level):
         self.game = game
         self.player = player
         self.level = level
         self.mouse_pos = (-1,-1)
-        self.font_menu = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 18)
+        self.font_messages = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 18)
         self.font_win  = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 32)
         self.is_lost=False
+        self.has_info=False
         self.is_solving=False
         self.load_texts()
+
+
+    def reset(self):
+        self.txtCancel.change_color(SOKOBAN.GREY)
+        self.is_lost=False
+        self.has_info=False
+        self.is_solving=False
 
     def load_texts(self):
 
         self.txtLevel = Text("Niveau 1",
-                self.font_menu, SOKOBAN.BLUE, SOKOBAN.ALEFT, SOKOBAN.ATOP,
+                self.font_messages, SOKOBAN.BLUE, SOKOBAN.ALEFT, SOKOBAN.ATOP,
                 callback=None)
 
         self.txtCancel = Text("Annuler le dernier coup (C)",
-                self.font_menu, SOKOBAN.GREY, SOKOBAN.ARIGHT, SOKOBAN.ATOP,
+                self.font_messages, SOKOBAN.GREY, SOKOBAN.ARIGHT, SOKOBAN.ATOP,
                 callback=self.cancel)
 
         self.txtReset = Text("Recommencer le niveau (R)",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ATOP,
+                self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ATOP,
                 callback=self.game.load_level)
 
         self.txtVisu = Text("Aide visuelle (V)",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ALEFT, SOKOBAN.ABOTTOM,
+                self.font_messages, SOKOBAN.BLACK, SOKOBAN.ALEFT, SOKOBAN.ABOTTOM,
                 callback=self.game.toggle_visualize)
 
         self.txtHelp = Text("Aide sokoban (H) / Résolution complète (A)",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ABOTTOM,
+                self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ABOTTOM,
                 callback=None)
 
         self.txtMoves = Text("Coups : 0",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ARIGHT, SOKOBAN.ABOTTOM,
+                self.font_messages, SOKOBAN.BLACK, SOKOBAN.ARIGHT, SOKOBAN.ABOTTOM,
                 callback=None)
 
 
@@ -183,16 +192,22 @@ class PlayerInterface:
         y  = self.txtWin.pos[1]
         y += self.txtWin.surf.get_height()+40
         self.txtPress = Text ("(appuyez sur une touche pour continuer)",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 y=y, callback=None)
 
         self.txtLost = Text ("Résolution impossible (certaines boîtes sont définitivement coincées)",
-                self.font_menu, SOKOBAN.RED, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                self.font_messages, SOKOBAN.RED, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 y=self.ymessages,
                 callback=None)
 
-        self.txtResol = Text (" ",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+        self.txtResol = Text ("Résolution en cours (Esc pour annuler)",
+                self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                y=self.ymessages - 30,
+                callback=None)
+
+
+        self.txtInfo = Text (" ",
+                self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 y=self.ymessages,
                 callback=None)
 
@@ -243,21 +258,29 @@ class PlayerInterface:
     def set_lost_state(self, lost):
         self.is_lost = lost
 
+
+
+    def display_info(self, message=None, error=False):
+        if message is not None:
+            self.txtInfo.update(message)
+        self.txtInfo.update(message)
+        if error:
+            self.txtInfo.change_color(SOKOBAN.RED)
+        else:
+            self.txtInfo.change_color(SOKOBAN.BLACK)
+
+
     def set_solving(self, flag, num=None, message=None, error=False):
+        self.has_info = flag
         self.is_solving = flag
         if num is not None:
-            self.txtResol.update("Résolution en cours, " + str(num) +
-                    " états explorés (Esc pour annuler)")
-        if message is not None:
-            self.txtResol.update(message)
-        if error:
-            self.txtResol.change_color(SOKOBAN.RED)
-        else:
-            self.txtResol.change_color(SOKOBAN.BLACK)
+            message = "Résolution en cours, " + str(num) + " états explorés (Esc pour annuler)"
+        self.display_info(message, error)
 
-    def render(self, window, levelNum, level):
 
-        self.txtLevel.render(window, "Niveau " + str(levelNum))
+    def render(self, window, level_num, level):
+
+        self.txtLevel.render(window, "Niveau " + str(level_num))
         self.txtMoves.render(window, "Coups : " + str(level.num_moves))
         self.txtCancel.render(window)
         self.txtReset.render(window)
@@ -266,5 +289,8 @@ class PlayerInterface:
         if self.is_lost:
             self.txtLost.render(window)
 
+        if self.has_info:
+            self.txtInfo.render(window)
         if self.is_solving:
             self.txtResol.render(window)
+

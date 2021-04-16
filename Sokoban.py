@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
+#
+# Yet another Sokoban clone
+#
 
+import sys
 import os
 # Hide welcome message from pygame
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -8,7 +12,7 @@ import pygame
 from pygame.locals import *
 import constants as SOKOBAN
 from utils import *
-from game import *
+from game import Game
 from interface import Menu
 import time
 

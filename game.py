@@ -13,11 +13,12 @@ KEYDIR = {
         K_DOWN: SOKOBAN.DOWN,
         K_LEFT: SOKOBAN.LEFT,
         K_RIGHT: SOKOBAN.RIGHT,
+        # classical on Azerty keyboard
         K_z: SOKOBAN.UP,
         K_s: SOKOBAN.DOWN,
         K_q: SOKOBAN.LEFT,
         K_d: SOKOBAN.RIGHT
-        }
+}
 
 class Game:
     def __init__(self, window, continueGame=True):
@@ -35,12 +36,10 @@ class Game:
 
         self.load_level(nextLevel=True)
         self.play = True
-        self.interface = PlayerInterface(self, self.player, self.level)
+        self.interface = Interface(self, self.player, self.level)
         self.visual = False
         self.has_changed = False
         self.selected_position = None
-
-        self.start()
 
     def load_textures(self):
         ground = pygame.image.load('assets/images/stoneCenter.png').convert_alpha()
@@ -49,14 +48,12 @@ class Game:
             SOKOBAN.WALL: pygame.image.load('assets/images/wall.png').convert_alpha(),
             SOKOBAN.BOX: pygame.image.load('assets/images/box.png').convert_alpha(),
             SOKOBAN.TARGET: ground,
+            # target overlay
             SOKOBAN.TARGETOVER: pygame.image.load('assets/images/target.png').convert_alpha(),
-            # SOKOBAN.TARGETOVER: pygame.image.load('assets/images/target.png').convert(),
-            # SOKOBAN.TARGET_FILLED: pygame.image.load('assets/images/valid_box.png').convert_alpha(),
             SOKOBAN.TARGET_FILLED: pygame.image.load('assets/images/box_correct.png').convert_alpha(),
             SOKOBAN.PLAYER: pygame.image.load('assets/images/player_sprites.png').convert_alpha(),
             SOKOBAN.GROUND: ground
         }
-        self.textures[SOKOBAN.TARGETOVER].set_alpha(128) # does not seem to have any effect
 
         def surfhigh (color, alpha):
             surf = pygame.Surface((SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
@@ -76,17 +73,23 @@ class Game:
                 SOKOBAN.HERROR :surfError,
                 }
 
-    def load_level(self, nextLevel=False):
+    def load_level(self, nextLevel=False, prevLevel=False):
+        """
+        load (or reload) current level or load next level
+        """
         if nextLevel:
             self.index_level += 1
-        self.level = Level(self, self.index_level, self.scores.level_style())
-        if self.interface:
-            self.interface.txtCancel.change_color(SOKOBAN.GREY)
+        if prevLevel:
+            self.index_level -= 1
 
-        if not self.level.success:
+        self.level = Level(self, self.index_level, self.scores.level_style())
+
+        if not self.level.loaded:
             self.play = False
             return
 
+        if self.interface:
+            self.interface.reset()
 
         self.board = pygame.Surface((self.level.width, self.level.height))
         if self.player:
@@ -105,9 +108,13 @@ class Game:
 
 
     def start(self):
+        if not self.level.loaded:
+            self.interface.display_info("Ne peut charger de niveau", error=True)
+            return
+
         while self.play:
-            self.process_event(pygame.event.wait())
             self.update_screen()
+            self.process_event(pygame.event.wait())
 
 
     def animate_move_to(self, position):
@@ -223,7 +230,7 @@ class Game:
     def process_event(self, event):
         if event.type == QUIT:
             pygame.quit()
-            sys.exit()
+            sys.exit(0)
 
         if event.type == KEYDOWN:
             self.cancel_selected()
@@ -251,6 +258,9 @@ class Game:
 
             elif event.key == K_k: # cheat key :-)
                     self.load_level(nextLevel=True)
+
+            elif event.key == K_p: # back key
+                    self.load_level(prevLevel=True)
 
             elif event.key == K_r:
                 # Restart current level
@@ -325,9 +335,10 @@ class Game:
             if event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN:
                 break
 
-    def update_check_cancel(self, num_states):
-        self.interface.set_solving(True, num=num_states)
-        self.update_screen()
+    def check_cancel(self, message):
+        self.interface.set_solving(True, message=message)
+        self.interface.render(self.window, self.index_level, self.level)
+        pygame.display.flip()
         event = pygame.event.poll()
 
         while event.type != NOEVENT:
@@ -355,7 +366,7 @@ class Game:
 
 
     def update_screen(self):
-        if not self.level.success: return
+        # if not self.level.loaded: return
 
         # clear screen
         self.window.fill(SOKOBAN.WHITE)

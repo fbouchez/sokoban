@@ -12,7 +12,7 @@ class Level:
         self.single_file_levels = None
         self.level_number = 0
         self.boxes = []
-        self.success = self.load(level_to_load, levelstyle)
+        self.loaded = self.load(level_to_load, levelstyle)
 
     def place_box(self, box):
         x,y=box
