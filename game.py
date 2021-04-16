@@ -26,6 +26,10 @@ class Game:
         self.load_textures()
         self.player = None
         self.interface = None
+        self.level = self.level = Level(self, 
+                SOKOBAN.SINGLE_FILE,
+                single_file=True
+                )
         self.scores = Scores(self)
         self.scores.load()
 
@@ -82,7 +86,7 @@ class Game:
         if prevLevel:
             self.index_level -= 1
 
-        self.level = Level(self, self.index_level, self.scores.level_style())
+        self.level.load(self.index_level)
 
         if not self.level.loaded:
             self.play = False

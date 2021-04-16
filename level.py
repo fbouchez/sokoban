@@ -103,7 +103,7 @@ class Level:
             # will not read all files
             return
 
-        verbose ('Reading file', self.filenammhe)
+        verbose ('Reading file', self.filename)
         with open("assets/levels/" + self.filename) as level_file:
             rows = level_file.read().split('\n')
         num = 0
@@ -125,21 +125,27 @@ class Level:
 
             if r.startswith('Title: '):
                 title=r[7:]
-                print ("title found '", title, "'")
 
+            # check if this is a valid line:
+            # only blanks until a wall '#'
             h = r.find('#')
             if h == -1:
                 continue
+            valid=True
             for i in range(h):
-                assert(r[i] == ' ')
+                if r[i] != ' ':
+                    valid=False
+                    break
+            if not valid:
+                continue
 
-
-            current.append(r)
+            current.append(r) # row belongs to level
 
         self.single_file_levels = lev
 
 
-    def load(self, levelnum)
+    def load(self, levelnum):
+        self.loaded=False
         if self.single_file_levels:
 
             if levelnum > len(self.single_file_levels):
@@ -166,6 +172,8 @@ class Level:
 
         # no previous move to cancel
         self.state_stack = []
+        self.num_moves = 0
+        self.loaded=True
         return True
 
     def reset_highlight (self):
