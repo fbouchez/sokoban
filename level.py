@@ -5,14 +5,16 @@ from explore import *
 from utils import *
 
 class Level:
-    def __init__(self, game, level_to_load, levelstyle):
+    def __init__(self, game, filename, single_file=True):
         self.game=game
         self.num_moves = 0
         self.dij = None
-        self.single_file_levels = None
+        self.filename = filename
+        self.single_file        = single_file
+        self.single_file_levels = []
         self.level_number = 0
-        self.boxes = []
-        self.loaded = self.load(level_to_load, levelstyle)
+        self.load_file()    # read whole file
+        self.loaded = False # True when a level is loaded
 
     def place_box(self, box):
         x,y=box
@@ -96,60 +98,59 @@ class Level:
             return False
 
 
-    def load_single_file(self, levelnum, nextlevel=True):
-        if not self.single_file_levels:
-            with open("assets/levels/" + SOKOBAN.SINGLE_FILE) as level_file:
-                rows = level_file.read().split('\n')
-            num = 0
-            lev = []
-            current = []
-            title = None
+    def load_file(self):
+        if not self.single_file:
+            # will not read all files
+            return
 
-            for r in rows:
-                if r == '':
-                    # end of level
-                    if current != []:
-                        lev.append((title,current))
-                        current = []
-                        title = None
-                    continue
+        verbose ('Reading file', self.filenammhe)
+        with open("assets/levels/" + self.filename) as level_file:
+            rows = level_file.read().split('\n')
+        num = 0
+        lev = []
+        current = []
+        title = None
 
-                if r[0] == ';':
-                    continue
+        for r in rows:
+            if r == '':
+                # end of level
+                if current != []:
+                    lev.append((title,current))
+                    current = []
+                    title = None
+                continue
 
-                if r.startswith('Title: '):
-                    title=r[7:]
-                    print ("title found '", title, "'")
+            if r[0] == ';':
+                continue
 
-                h = r.find('#')
-                if h == -1:
-                    continue
-                for i in range(h):
-                    assert(r[i] == ' ')
+            if r.startswith('Title: '):
+                title=r[7:]
+                print ("title found '", title, "'")
 
-
-                current.append(r)
-
-            self.single_file_levels = lev
-
-        if levelnum > len(self.single_file_levels):
-            return False
-
-        self.title, rows = self.single_file_levels[levelnum-1]
-
-        self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
-        return True
+            h = r.find('#')
+            if h == -1:
+                continue
+            for i in range(h):
+                assert(r[i] == ' ')
 
 
-    def load(self, levelnum, levelstyle='single_file'):
-        verbose ('Loading level', levelnum)
-        if levelstyle == 'file_by_file':
+            current.append(r)
+
+        self.single_file_levels = lev
+
+
+    def load(self, levelnum)
+        if self.single_file_levels:
+
+            if levelnum > len(self.single_file_levels):
+                return False
+
+            self.title, rows = self.single_file_levels[levelnum-1]
+            self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
+        else:
             ret = self.load_file_by_file(levelnum=levelnum)
-        elif levelstyle == 'single_file':
-            ret = self.load_single_file(levelnum, nextlevel=False)
-
-        if not ret:
-            return False
+            if not ret:
+                return False
 
         self.width = self.map_width * SOKOBAN.SPRITESIZE
         self.height = self.map_height * SOKOBAN.SPRITESIZE
