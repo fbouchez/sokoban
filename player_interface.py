@@ -82,7 +82,7 @@ class PlayerInterface:
         self.mouse_pos = (-1,-1)
         self.font_menu = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 18)
         self.font_win  = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 32)
-
+        self.is_lost=False
         self.load_texts()
 
     def load_texts(self):
@@ -103,7 +103,7 @@ class PlayerInterface:
                 self.font_menu, SOKOBAN.BLACK, SOKOBAN.ALEFT, SOKOBAN.ABOTTOM,
                 callback=self.game.toggle_visualize)
 
-        self.txtHelp = Text("Aide sokoban (H)",
+        self.txtHelp = Text("Aide sokoban (H) / Résolution complète (A)",
                 self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ABOTTOM,
                 callback=None)
 
@@ -121,9 +121,16 @@ class PlayerInterface:
                 self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 callback=None)
 
+
+
         y  = self.txtWin.pos[1]
         y += self.txtWin.surf.get_height()+40
         self.txtPress.set_pos(y=y)
+
+        self.txtLost = Text ("Résolution impossible (certaines boîtes sont définitivement coincées)",
+                self.font_menu, SOKOBAN.RED, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                callback=None)
+        self.txtLost.set_pos(y=SOKOBAN.WINDOW_HEIGHT - 80)
 
         self.texts = [
                 self.txtLevel,
@@ -132,7 +139,8 @@ class PlayerInterface:
                 self.txtVisu,
                 self.txtHelp,
                 self.txtMoves,
-                self.txtPress
+                self.txtPress,
+                self.txtLost
                 ]
 
 
@@ -164,8 +172,12 @@ class PlayerInterface:
         self.txtPress.render(window)
 
 
-    def lost_state(self):
-        pass
+    def show_press_key(self, window):
+        self.txtPress.render(window)
+
+
+    def set_lost_state(self, lost):
+        self.is_lost = lost
 
 
     def render(self, window, levelNum, level):
@@ -176,3 +188,5 @@ class PlayerInterface:
         self.txtReset.render(window)
         self.txtVisu.render(window)
         self.txtHelp.render(window)
+        if self.is_lost:
+            self.txtLost.render(window)

@@ -57,6 +57,11 @@ class Level:
                     level_row[-1] = SOKOBAN.GROUND
                     self.player_position = (x,y)
 
+                elif block == SOKOBAN.PLAYER_ON_GOAL:
+                    level_row[-1] = SOKOBAN.TARGET
+                    self.player_position = (x,y)
+
+
             self.map.append(level_row)
 
         self.map_width =  max_width
@@ -93,27 +98,41 @@ class Level:
 
     def load_single_file(self, levelnum, nextlevel=True):
         if not self.single_file_levels:
-            with open("assets/levels/" + SOKOBAN.SINGLE_FILE + ".txt") as level_file:
+            with open("assets/levels/" + SOKOBAN.SINGLE_FILE) as level_file:
                 rows = level_file.read().split('\n')
             num = 0
             lev = []
             cur = []
 
             for r in rows:
-                if r == '': continue
-                if r[0] == ';':
-                    curnum = int(r[2:])
-                    lev.append((curnum, cur))
-                    cur = []
+
+                stop_level = False
+
+                if r == '' or r[0] == ';':
+                    stop_level = True
+
+                h = r.find('#')
+                if h == -1:
+                    stop_level = True
                 else:
-                    cur.append(r)
+                    for i in range(h):
+                        if r[i] != ' ':
+                            stop_level = True
+
+                if stop_level:
+                    if cur != []:
+                        lev.append(cur)
+                        cur = []
+                    continue
+
+                cur.append(r)
 
             self.single_file_levels = lev
 
         if levelnum > len(self.single_file_levels):
             return False
 
-        num,rows = self.single_file_levels[levelnum-1]
+        rows = self.single_file_levels[levelnum-1]
 
         self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
         return True
@@ -176,6 +195,7 @@ class Level:
 
 
     def lost_state(self, mboxes=None, boxlist=None):
+        # print ("nothing special")
         if mboxes is None:
             mboxes = self.mboxes
         if boxlist is None:
@@ -188,6 +208,7 @@ class Level:
 
         # check if some boxes are in wall corners
         for box in boxlist:
+            # print ('cheking', box)
             # disp = False
             # if box == (10,5):
                 # disp=True

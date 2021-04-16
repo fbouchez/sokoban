@@ -1,5 +1,6 @@
-# SINGLE_FILE = 'Original'
-SINGLE_FILE = 'Tests'
+SINGLE_FILE = 'Original.txt'
+# SINGLE_FILE = 'Tests.txt'
+# SINGLE_FILE = 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
 
 
 # Normally, no need to modify anything below
@@ -33,10 +34,11 @@ TARGET_FILLED   = 4
 PLAYER          = 5
 AIR             = 6
 GROUND          = 7
-TARGETOVER      = 8 # just for the texture overlay
+PLAYER_ON_GOAL  = 8
+TARGETOVER      = 9 # just for the texture overlay
 
-SYMBOLS_ORIGINALS = ['','#','$','.','*','@',' ','']
-SYMBOLS_MODERN    = ['','X','*','.','&','@',' ','']
+SYMBOLS_ORIGINALS = ['','#','$','.','*','@',' ','','+']
+SYMBOLS_MODERN    = ['','X','*','.','&','@',' ','','+']
 
 
 
@@ -63,6 +65,7 @@ WHITE           = (255,255,255)
 BLACK           = (0,0,0)
 BLUE            = (0,0,150)
 GREY            = (200,200,200)
+RED             = (150,0,0)
 
 HOFF  = 0
 HATT  = 1
@@ -72,7 +75,8 @@ HERROR  = 4
 
 
 # Time delays
-MOVE_DELAY = 3 # milliseconds
+MOVE_DELAY  = 3  # milliseconds
+SOLVE_DELAY = 1000 # milliseconds
 FLASH_DELAY = 100 # milliseconds
 
 

@@ -1,9 +1,18 @@
 import json
+import constants as SOKOBAN
 
 class Scores:
     def __init__(self, game):
         self.game = game
         self.scores = None
+
+    def template(self):
+        t = {
+                'style': 'single_file',
+                'last_level': 0,
+                'levels': []
+            }
+        return t
 
     def load(self):
         try:
@@ -12,16 +21,16 @@ class Scores:
         except FileNotFoundError:
             print("No saved data")
             self.scores = {
-                    'style': 'single_file',
-                    'last_level': 0,
-                    'levels': []
+                SOKOBAN.SINGLE_FILE: self.template()
             }
 
     def last_level(self):
-        return self.scores['last_level']
+        if not SOKOBAN.SINGLE_FILE in self.scores:
+            self.scores[SOKOBAN.SINGLE_FILE] = self.template()
+        return self.scores[SOKOBAN.SINGLE_FILE]['last_level']
 
     def level_style(self):
-        return self.scores['style']
+        return self.scores[SOKOBAN.SINGLE_FILE]['style']
 
     def save(self):
         # Saving score in file only when current level > saved level
@@ -29,9 +38,9 @@ class Scores:
         idx   = self.game.index_level
 
         if idx > self.last_level():
-            self.scores['last_level'] = idx
+            self.scores[SOKOBAN.SINGLE_FILE]['last_level'] = idx
 
-        lev = self.scores['levels']
+        lev = self.scores[SOKOBAN.SINGLE_FILE]['levels']
         while len(lev) < idx+1:
             lev.append(None)
 

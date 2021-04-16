@@ -37,3 +37,17 @@ def in_opp_dir(pos, d):
 
 def horizontal(d):
     return d == SOKOBAN.LEFT or d == SOKOBAN.RIGHT
+
+
+# check if element is last of an iterator
+def islast(o):
+    it = o.__iter__()
+    e = it.__next__()
+    while True:
+        try:
+            nxt = it.__next__()
+            yield (False, e)
+            e = nxt
+        except StopIteration:
+            yield (True, e)
+            break

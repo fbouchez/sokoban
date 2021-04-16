@@ -107,8 +107,7 @@ class Game:
     def start(self):
         while self.play:
             self.process_event(pygame.event.wait())
-            if self.play:
-                self.update_screen()
+            self.update_screen()
 
 
     def animate_move_to(self, position):
@@ -122,9 +121,12 @@ class Game:
             pygame.time.wait(SOKOBAN.MOVE_DELAY)
 
 
-    def animate_move_boxes(self, path):
-        self.level.dij = None
-        for (box,d) in path:
+    def animate_move_boxes(self, path, skip_last=False, fast=True):
+        self.level.invalidate()
+
+        for last,(box,d) in islast(path):
+
+
             verbose ("now path is push", box, "from", SOKOBAN.DNAMES[d])
             pos = self.level.side_box(box, d)
 
@@ -132,10 +134,17 @@ class Game:
             oppd = SOKOBAN.OPPOSITE[d]
 
             # print ("current player pos", self.level.player_position)
-            ret = self.player.move(oppd)
+            #
+
+            if not skip_last or not last:
+                ret = self.player.move(oppd)
+
             assert (ret) # should have changed the level
             self.update_screen()
-            pygame.time.wait(SOKOBAN.MOVE_DELAY)
+            if fast:
+                pygame.time.wait(SOKOBAN.FLASH_DELAY)
+            else:
+                pygame.time.wait(SOKOBAN.SOLVE_DELAY)
 
             # new box position
             box = self.level.side_box(box, oppd)
@@ -199,11 +208,14 @@ class Game:
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == KEYDOWN:
+
+        if event.type == KEYDOWN:
             self.cancel_selected()
             if event.key == K_ESCAPE:
                 # Quit game
                 self.play = False
+                return
+
             elif event.key in KEYDIR.keys():
                 direction = KEYDIR[event.key]
 
@@ -214,9 +226,12 @@ class Game:
 
                 if self.has_win():
                     self.level_win()
+                    return
 
-                if self.level.lost_state():
-                    self.player_interface.lost_state()
+                lost = self.level.lost_state()
+                if lost:
+                    verbose ("Lost state !")
+                self.player_interface.set_lost_state(lost)
 
             elif event.key == K_k: # cheat key :-)
                     self.load_level(nextLevel=True)
@@ -233,6 +248,13 @@ class Game:
                 # Cancel last move
                 self.player_interface.cancel()
 
+                lost = self.level.lost_state()
+                if lost:
+                    verbose ("Lost state !")
+                self.player_interface.set_lost_state(lost)
+
+
+
             # "Test" key
             elif event.key == K_t:
                 pass
@@ -242,15 +264,17 @@ class Game:
                 else:
                     self.animate_move_boxes(path)
 
-            # "all box save" key
+            # "all box solve" key
             elif event.key == K_a:
                 path = self.level.solve_all_boxes()
                 if not path:
                     self.flash_red((8,3))
                 else:
-                    self.animate_move_boxes(path)
-
-
+                    self.update_screen()
+                    self.player_interface.show_press_key(self.window)
+                    pygame.display.flip()
+                    self.wait_key()
+                    self.animate_move_boxes(path, skip_last=True, fast=False)
 
         elif event.type == MOUSEBUTTONDOWN:
             position = self.player_interface.click(event.pos, self.level)
@@ -278,8 +302,8 @@ class Game:
         self.wait_key()
 
     def level_win(self):
-
         self.scores.save()
+        self.update_screen()
         self.player_interface.show_win(self.window, self.index_level)
         pygame.display.flip()
         self.wait_key()
@@ -288,6 +312,7 @@ class Game:
 
 
     def update_screen(self):
+        if not self.level.success: return
         pygame.draw.rect(self.board, SOKOBAN.WHITE, (0,0, self.level.width * SOKOBAN.SPRITESIZE, self.level.height * SOKOBAN.SPRITESIZE))
         pygame.draw.rect(self.window, SOKOBAN.WHITE, (0,0,SOKOBAN.WINDOW_WIDTH,SOKOBAN.WINDOW_HEIGHT))
 

@@ -78,7 +78,7 @@ def main():
             elif event.key == K_c:
                 sokoban = Game(window, continueGame = True)
                 sokoban.start()
-            elif event.key == K_ESCAPE:
+            elif event.key == K_ESCAPE or event.key == K_q:
                 run = False
         elif event.type == MOUSEBUTTONUP:
             run = menu.click(event.pos, window)
