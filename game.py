@@ -34,9 +34,9 @@ class Game:
         else:
             self.index_level = 0
 
+        self.interface = Interface(self)
         self.load_level(nextLevel=True)
         self.play = True
-        self.interface = Interface(self, self.player, self.level)
         self.visual = False
         self.has_changed = False
         self.selected_position = None
@@ -75,7 +75,7 @@ class Game:
 
     def load_level(self, nextLevel=False, prevLevel=False):
         """
-        load (or reload) current level or load next level
+        load (or reload) current level or previous/next level
         """
         if nextLevel:
             self.index_level += 1
@@ -88,9 +88,14 @@ class Game:
             self.play = False
             return
 
-        if self.interface:
-            self.interface.reset()
+        assert(self.interface)
 
+        self.interface.set_level(
+                self.level,
+                self.index_level,
+                self.level.title)
+
+        # space to draw the level
         self.board = pygame.Surface((self.level.width, self.level.height))
         if self.player:
             self.interface.level = self.level
@@ -99,17 +104,22 @@ class Game:
             self.player = Player(self.level)
 
     def toggle_visualize(self):
-        # toggle visu
-        self.visual = not(self.visual)
+        """
+        Activate/deactivate visual mode (attainable squares+pushable)
+        """
         self.has_changed = True
+        self.visual = not(self.visual)
         if not self.visual:
-            # just got deactivated
             self.level.reset_highlight()
 
 
     def start(self):
         if not self.level.loaded:
-            self.interface.display_info("Ne peut charger de niveau", error=True)
+            print ("Plus de niveaux disponibles")
+            ## Cannot use interface since it is only when a level is loaded
+            # self.interface.display_info("Ne peut charger de niveau", error=True)
+            # self.interface.render()
+            # pygame.display.flip()
             return
 
         while self.play:

@@ -48,11 +48,14 @@ class Text:
 
         self.pos= (xpos,ypos)
 
-    def set_pos (self, x=None,y=None):
+    def set_pos (self, x=None,y=None,below=None):
         if x is None:
             x = self.pos[0]
         if y is None:
             y = self.pos[1]
+        if below is not None:
+            y = below.pos[1] + below.surf.get_height()+BORDER
+
         self.pos = (x,y)
 
     def is_clicked(self,click, do_callback=True):
@@ -132,10 +135,9 @@ class Menu:
 
 
 class Interface:
-    def __init__(self, game, player, level):
+    def __init__(self, game):
         self.game = game
-        self.player = player
-        self.level = level
+        self.level = None
         self.mouse_pos = (-1,-1)
         self.font_messages = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 18)
         self.font_win  = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 32)
@@ -143,6 +145,16 @@ class Interface:
         self.has_info=False
         self.is_solving=False
         self.load_texts()
+
+    def set_level(self, level, level_num, title=None):
+        self.reset()
+        self.level = level
+        self.txtLevel.update("Niveau " + str(level_num))
+        if title:
+            self.txtTitle.update(title)
+        else:
+            self.txtTitle.update(" ")
+
 
 
     def reset(self):
@@ -156,6 +168,14 @@ class Interface:
         self.txtLevel = Text("Niveau 1",
                 self.font_messages, SOKOBAN.BLUE, SOKOBAN.ALEFT, SOKOBAN.ATOP,
                 callback=None)
+
+        self.txtTitle = Text(" ",
+                self.font_messages, SOKOBAN.BLUE, SOKOBAN.ALEFT, SOKOBAN.ACUSTOM,
+                callback=None)
+
+        self.txtTitle.set_pos(below=self.txtLevel)
+
+
 
         self.txtCancel = Text("Annuler le dernier coup (C)",
                 self.font_messages, SOKOBAN.GREY, SOKOBAN.ARIGHT, SOKOBAN.ATOP,
@@ -280,7 +300,8 @@ class Interface:
 
     def render(self, window, level_num, level):
 
-        self.txtLevel.render(window, "Niveau " + str(level_num))
+        self.txtLevel.render(window)
+        self.txtTitle.render(window)
         self.txtMoves.render(window, "Coups : " + str(level.num_moves))
         self.txtCancel.render(window)
         self.txtReset.render(window)

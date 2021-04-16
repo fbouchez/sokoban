@@ -102,37 +102,40 @@ class Level:
                 rows = level_file.read().split('\n')
             num = 0
             lev = []
-            cur = []
+            current = []
+            title = None
 
             for r in rows:
+                if r == '':
+                    # end of level
+                    if current != []:
+                        lev.append((title,current))
+                        current = []
+                        title = None
+                    continue
 
-                stop_level = False
+                if r[0] == ';':
+                    continue
 
-                if r == '' or r[0] == ';':
-                    stop_level = True
+                if r.startswith('Title: '):
+                    title=r[7:]
+                    print ("title found '", title, "'")
 
                 h = r.find('#')
                 if h == -1:
-                    stop_level = True
-                else:
-                    for i in range(h):
-                        if r[i] != ' ':
-                            stop_level = True
-
-                if stop_level:
-                    if cur != []:
-                        lev.append(cur)
-                        cur = []
                     continue
+                for i in range(h):
+                    assert(r[i] == ' ')
 
-                cur.append(r)
+
+                current.append(r)
 
             self.single_file_levels = lev
 
         if levelnum > len(self.single_file_levels):
             return False
 
-        rows = self.single_file_levels[levelnum-1]
+        self.title, rows = self.single_file_levels[levelnum-1]
 
         self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
         return True
