@@ -6,7 +6,7 @@ from level import *
 from explore import *
 from player import *
 from scores import *
-from player_interface import *
+from interface import *
 
 KEYDIR = {
         K_UP: SOKOBAN.UP,
@@ -24,7 +24,7 @@ class Game:
         self.window = window
         self.load_textures()
         self.player = None
-        self.player_interface = None
+        self.interface = None
         self.scores = Scores(self)
         self.scores.load()
 
@@ -35,7 +35,7 @@ class Game:
 
         self.load_level(nextLevel=True)
         self.play = True
-        self.player_interface = PlayerInterface(self, self.player, self.level)
+        self.interface = PlayerInterface(self, self.player, self.level)
         self.visual = False
         self.has_changed = False
         self.selected_position = None
@@ -80,8 +80,8 @@ class Game:
         if nextLevel:
             self.index_level += 1
         self.level = Level(self, self.index_level, self.scores.level_style())
-        if self.player_interface:
-            self.player_interface.txtCancel.change_color(SOKOBAN.GREY)
+        if self.interface:
+            self.interface.txtCancel.change_color(SOKOBAN.GREY)
 
         if not self.level.success:
             self.play = False
@@ -90,7 +90,7 @@ class Game:
 
         self.board = pygame.Surface((self.level.width, self.level.height))
         if self.player:
-            self.player_interface.level = self.level
+            self.interface.level = self.level
             self.player.level = self.level
         else:
             self.player = Player(self.level)
@@ -182,7 +182,7 @@ class Game:
             if postype == SOKOBAN.BOX:
                 self.cancel_selected()
 
-                self.player_interface.set_solving(True, num=0)
+                self.interface.set_solving(True, num=0)
 
                 # now try to move the box
                 if position == selpos:
@@ -192,7 +192,7 @@ class Game:
                     # different position: move the box to this area
                     found,message,path = self.level.move_one_box(selpos, position)
 
-                self.player_interface.set_solving(True,
+                self.interface.set_solving(True,
                         message=message,
                         error=not found
                     )
@@ -202,7 +202,7 @@ class Game:
                 else:
                     self.animate_move_boxes(path)
 
-                self.player_interface.set_solving(False)
+                self.interface.set_solving(False)
 
             else:
                 # now we should only select boxes
@@ -238,7 +238,7 @@ class Game:
                 # Move player
                 self.has_changed = self.player.move(direction)
                 if self.has_changed:
-                    self.player_interface.txtCancel.change_color(SOKOBAN.BLACK)
+                    self.interface.txtCancel.change_color(SOKOBAN.BLACK)
 
                 if self.has_win():
                     self.level_win()
@@ -247,7 +247,7 @@ class Game:
                 lost = self.level.lost_state()
                 if lost:
                     verbose ("Lost state !")
-                self.player_interface.set_lost_state(lost)
+                self.interface.set_lost_state(lost)
 
             elif event.key == K_k: # cheat key :-)
                     self.load_level(nextLevel=True)
@@ -262,12 +262,12 @@ class Game:
 
             elif event.key == K_c:
                 # Cancel last move
-                self.player_interface.cancel()
+                self.interface.cancel()
 
                 lost = self.level.lost_state()
                 if lost:
                     verbose ("Lost state !")
-                self.player_interface.set_lost_state(lost)
+                self.interface.set_lost_state(lost)
 
 
 
@@ -282,10 +282,10 @@ class Game:
 
             # "all box solve" key
             elif event.key == K_a:
-                self.player_interface.set_solving(True, num=0)
+                self.interface.set_solving(True, num=0)
                 found,message,path = self.level.solve_all_boxes()
                 if not found:
-                    self.player_interface.set_solving(True,
+                    self.interface.set_solving(True,
                             message=message,
                             error=True
                             )
@@ -294,31 +294,31 @@ class Game:
                     self.wait_key()
 
                 else:
-                    self.player_interface.set_solving(True,
+                    self.interface.set_solving(True,
                             message=message,
                             error=False)
                     self.flash_screen(color=SOKOBAN.GREEN)
                     self.wait_key()
                     self.animate_move_boxes(path, skip_last=True, fast=False)
 
-                self.player_interface.set_solving(False)
+                self.interface.set_solving(False)
 
         elif event.type == MOUSEBUTTONDOWN:
-            position = self.player_interface.click(event.pos, self.level)
+            position = self.interface.click(event.pos, self.level)
             if position:
                 self.click_pos(position)
             else:
                 self.cancel_selected()
 
         elif event.type == MOUSEMOTION:
-            self.player_interface.mouse_pos = event.pos
+            self.interface.mouse_pos = event.pos
         # else:
             # print ("Unknown event:", event)
             #
 
     def wait_key(self):
         self.update_screen()
-        self.player_interface.show_press_key(self.window)
+        self.interface.show_press_key(self.window)
         pygame.display.flip()
         while True:
             event = pygame.event.wait()
@@ -326,14 +326,14 @@ class Game:
                 break
 
     def update_check_cancel(self, num_states):
-        self.player_interface.set_solving(True, num=num_states)
+        self.interface.set_solving(True, num=num_states)
         self.update_screen()
         event = pygame.event.poll()
 
         while event.type != NOEVENT:
             if event.type == KEYDOWN \
             and event.key == K_ESCAPE:
-                self.player_interface.set_solving(False)
+                self.interface.set_solving(False)
                 return True
             event = pygame.event.poll()
         return False
@@ -347,7 +347,7 @@ class Game:
     def level_win(self):
         self.scores.save()
         self.update_screen()
-        self.player_interface.show_win(self.window, self.index_level)
+        self.interface.show_win(self.window, self.index_level)
         pygame.display.flip()
         self.wait_key()
 
@@ -375,7 +375,7 @@ class Game:
 
         self.origin_board = (pos_x_board, pos_y_board)
 
-        self.player_interface.render(self.window, self.index_level, self.level)
+        self.interface.render(self.window, self.index_level, self.level)
 
         pygame.display.flip()
 

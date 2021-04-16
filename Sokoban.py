@@ -9,7 +9,7 @@ from pygame.locals import *
 import constants as SOKOBAN
 from utils import *
 from game import *
-from player_interface import Menu
+from interface import Menu
 import time
 
 def parse_options():
