@@ -4,13 +4,13 @@ import constants as SOKOBAN
 BORDER = 10
 
 class Text:
-    def __init__(self,text,font,color,xalign,yalign,callback=None):
+    def __init__(self,text,font,color,xalign,yalign,x=0,y=0,callback=None):
         self.font  = font
         self.color = color
         self.xalign = xalign
         self.yalign = yalign
         self.callback = callback
-        self.pos  = (0,0)
+        self.pos  = (x,y)
         self.surf = None
         self.update(text)
 
@@ -74,6 +74,62 @@ class Text:
         window.blit(self.surf, self.pos)
 
 
+class Menu:
+    def __init__(self):
+        self.image = pygame.image.load('assets/images/menu.png').convert_alpha()
+        self.font_menu = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 30)
+
+        self.new_game = False
+        self.continue_game = False
+        self.quit = False
+
+        self.load()
+
+    def set_new_game(self):
+        self.new_game = True
+    def set_continue_game(self):
+        self.continue_game = True
+    def set_quit(self):
+        self.quit = True
+
+    def load(self):
+        self.txtNew = Text("Nouvelle partie",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM, y=300,
+                callback=self.set_new_game
+                )
+
+        self.txtCont = Text("Continuer",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM, y=370,
+                callback=self.set_continue_game
+                )
+
+        self.txtQuit = Text("Quitter partie",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM, y=440,
+                callback=self.set_quit
+                )
+
+        self.clickableTexts = [
+                self.txtNew,
+                self.txtCont,
+                self.txtQuit
+                ]
+
+    def click(self, pos_click):
+        # check if some text has been clicked
+        for t in self.clickableTexts:
+            if t.is_clicked(pos_click, do_callback=True):
+                return True
+        return False
+
+    def render(self, window):
+        window.blit(self.image, (0,0))
+
+        self.txtNew.render(window)
+        self.txtCont.render(window)
+        self.txtQuit.render(window)
+
+
+
 class PlayerInterface:
     def __init__(self, game, player, level):
         self.game = game
@@ -124,23 +180,21 @@ class PlayerInterface:
 
 
 
-        self.txtPress = Text ("(appuyez sur une touche pour continuer)",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
-                callback=None)
-
         y  = self.txtWin.pos[1]
         y += self.txtWin.surf.get_height()+40
-        self.txtPress.set_pos(y=y)
+        self.txtPress = Text ("(appuyez sur une touche pour continuer)",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                y=y, callback=None)
 
         self.txtLost = Text ("Résolution impossible (certaines boîtes sont définitivement coincées)",
                 self.font_menu, SOKOBAN.RED, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                y=self.ymessages,
                 callback=None)
-        self.txtLost.set_pos(y=self.ymessages)
 
         self.txtResol = Text (" ",
                 self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                y=self.ymessages,
                 callback=None)
-        self.txtResol.set_pos(y=self.ymessages)
 
 
         self.clickableTexts = [

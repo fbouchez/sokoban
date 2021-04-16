@@ -9,87 +9,68 @@ from pygame.locals import *
 import constants as SOKOBAN
 from utils import *
 from game import *
+from player_interface import Menu
 import time
-
-class Menu:
-    def __init__(self):
-        self.image = pygame.image.load('assets/images/menu.png').convert_alpha()
-        self.new_game_txt = "Nouvelle partie"
-        self.load_game_txt = "Continuer"
-        self.quit_game_txt = "Quitter"
-        self.font = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 30)
-
-    def click(self, click_pos, window):
-        x = click_pos[0]
-        y = click_pos[1]
-
-        if x > self.new_game_txt_position[0] and x < self.new_game_txt_position[0] + self.new_game_txt_surface.get_width() \
-        and y > 300 and y < 300 + self.new_game_txt_surface.get_height():
-            sokoban = Game(window, continueGame = False)
-            sokoban.start()
-        elif x > self.load_game_txt_position[0] and x < self.load_game_txt_position[0] + self.load_game_txt_surface.get_width() \
-        and y > 370 and y < 370 + self.load_game_txt_surface.get_height():
-            sokoban = Game(window, continueGame = True)
-            sokoban.start()
-        elif x > self.quit_game_txt_position[0] and x < self.quit_game_txt_position[0] + self.quit_game_txt_surface.get_width() \
-        and y > 440 and y < 440 + self.quit_game_txt_surface.get_height():
-            return False
-
-        return True
-
-    def render(self, window):
-        window.blit(self.image, (0,0))
-
-        self.new_game_txt_surface = self.font.render(self.new_game_txt, True, SOKOBAN.BLACK, SOKOBAN.WHITE)
-        self.new_game_txt_position = ((SOKOBAN.WINDOW_WIDTH // 2) - (self.new_game_txt_surface.get_width() // 2), 300)
-        window.blit(self.new_game_txt_surface, self.new_game_txt_position)
-
-        self.load_game_txt_surface = self.font.render(self.load_game_txt, True, SOKOBAN.BLACK, SOKOBAN.WHITE)
-        self.load_game_txt_position = ((SOKOBAN.WINDOW_WIDTH // 2) - (self.load_game_txt_surface.get_width() // 2), 370)
-        window.blit(self.load_game_txt_surface, self.load_game_txt_position)
-
-        self.quit_game_txt_surface = self.font.render(self.quit_game_txt, True, SOKOBAN.BLACK, SOKOBAN.WHITE)
-        self.quit_game_txt_position = ((SOKOBAN.WINDOW_WIDTH // 2) - (self.quit_game_txt_surface.get_width() // 2), 440)
-        window.blit(self.quit_game_txt_surface, self.quit_game_txt_position)
-
 
 def parse_options():
     for o in sys.argv:
         if o == "-v" or o == "--verbose":
             set_verbose()
 
+
+def new_game(window):
+    sokoban = Game(window, continueGame = False)
+    sokoban.start()
+
+def continue_game(window):
+    sokoban = Game(window, continueGame = True)
+    sokoban.start()
+
+
 def main():
 
     parse_options()
+    verbose("Verbose mode activated") # will only print if option was set
 
-    verbose("Verbose mode activated")
-
+    # Window creation
     pygame.init()
     pygame.key.set_repeat(100, 100)
     pygame.display.set_caption("Sokoban Game")
     window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT))
+
+    # Game menu
     menu = Menu()
 
-    run = True
-    while run:
+    while True:
+        # Check user inputs (mouse or keyboard)
         event = pygame.event.wait()
         if event.type == QUIT:
-            run = False
-        elif event.type == KEYDOWN:
-            if event.key == K_n:
-                sokoban = Game(window, continueGame = False)
-                sokoban.start()
-            elif event.key == K_c:
-                sokoban = Game(window, continueGame = True)
-                sokoban.start()
-            elif event.key == K_ESCAPE or event.key == K_q:
-                run = False
-        elif event.type == MOUSEBUTTONUP:
-            run = menu.click(event.pos, window)
-        # else:
-            # print ("Unknown event:", event)
+            # window was closed
+            break
 
-        pygame.draw.rect(window, SOKOBAN.WHITE, (0,0,SOKOBAN.WINDOW_WIDTH,SOKOBAN.WINDOW_HEIGHT))
+        elif event.type == KEYDOWN:
+            # keyboard interactions
+            if event.key == K_n:
+                new_game(window)
+            elif event.key == K_c:
+                continue_game(window)
+            elif event.key == K_ESCAPE or event.key == K_q:
+                break
+
+        elif event.type == MOUSEBUTTONDOWN:
+            # mouse interactions
+            if menu.click(event.pos):
+                if menu.new_game:
+                    new_game(window)
+                elif menu.continue_game:
+                    continue_game(window)
+                elif menu.quit:
+                    break
+                else:
+                    raise ValueError("Click problem on menu")
+
+        # Redraws menu, as a game might have been played
+        window.fill(SOKOBAN.WHITE)
         menu.render(window)
         pygame.display.flip()
 
