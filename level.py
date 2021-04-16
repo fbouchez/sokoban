@@ -391,14 +391,14 @@ class Level:
         self.compute_attainable()
 
         if not self.dij.is_marked((targetx,targety)):
-            print ("area is not attainable...")
+            verbose ("area is not attainable...")
             return None
 
         path = self.dij.shortest_path(self.player_position, pos)
         return path
 
     def solve_all_boxes(self):
-        print ("Solving for all boxes!")
+        verbose ("Solving for all boxes!")
         bs = BoxSolution(self, self.boxes)
         return bs.solve()
 
@@ -450,7 +450,7 @@ class Level:
         """
 
         if not self.state_stack:
-            print("No previous state")
+            verbose ("No previous state")
             return False
 
         state = self.state_stack.pop()

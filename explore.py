@@ -8,6 +8,7 @@ from time import time
 from math import sqrt
 
 
+MSG_SOLVE = "Explorés: {exp}     Temps: {el:.2f}s     Vitesse: {sp:.2f} états/s"
 
 class Dijkstra:
     def __init__(self, level):
@@ -136,58 +137,58 @@ class BoxSolution:
 
         return ((tboxes, allsides), tblist, self.level.player_position)
 
+    def reset_level_state(self, state):
+        """
+        remove boxes based on list
+        """
+        _, boxes, _ = state
+        for x,y in boxes:
+            self.level.mboxes[y][x] = False
+
 
     def set_level_state(self, state):
-        (tboxes, allsides), tblist, player = state
-        for y in range(self.level.map_height):
-            for x in range(self.level.map_width):
-                self.level.mboxes[y][x] = tboxes[y][x]
-        self.level.boxes = list(tblist)
+        _, boxes, player = state
+        for x,y in boxes:
+            self.level.mboxes[y][x] = True
+
+        self.level.boxes = list(boxes)
         self.boxlist=self.level.boxes
         self.level.set_player(player)
         self.level.invalidate()
         self.level.box_attainable_sides(self.boxlist)
 
-        # find a random position for player
-        # for i,s in enumerate(allsides):
-            # for d,f in enumerate(s):
-                # if f:
-                    # b=tblist[i]
-                    # p=in_dir(b,d)
-                    # self.level.set_player(p)
-                    # return
-        # assert(False)
 
     def acceptable_state(self, state):
-        (tboxes, allsides), tblist, player = state
+        _, boxes, player = state
 
         if not self.dest is None:
             box = tblist[0]
             return box == self.dest
 
         # otherwise, check all boxes are on targets
-        for box in tblist:
+        for box in boxes:
             if not self.level.is_target(box):
                 return False
         return True
 
     def lost_state(self, state):
-        (tboxes, allsides), tblist, player = state
-        return self.level.lost_state(tboxes, tblist)
+        (mapboxes, _), boxes, _ = state
+        return self.level.lost_state(mapboxes, boxes)
+
+
 
     def solve(self):
         """
         Tries find a series of movements to move box from source to dest without 
         moving other boxes
         """
-        for b in self.boxlist:
-            assert (self.level.has_box(b))
 
         if self.dest != None and not self.level.is_empty(self.dest):
             return (False, "Destination impossible", None)
 
         # save current state of level w.r.t box & player
         self.save_state = self.level.get_current_state()
+
 
         # initial state: boxes + their attainable sides
         init_state = self.make_state()
@@ -199,6 +200,11 @@ class BoxSolution:
                 'prev' : None,
                 'push' : (self.level.player_position, None) # box 'pushed' represents player
                 }
+
+        # clear existing boxes
+        for x,y in self.boxlist:
+            assert (self.level.mboxes[y][x])
+            self.level.mboxes[y][x] = False
 
 
         # explore neighbouring states
@@ -224,31 +230,21 @@ class BoxSolution:
 
             states_explored += 1
 
-
-            # if states_explored % 1000 == 0:
-            # if states_explored % 200 == 0:
-            # if states_explored % 50 == 0:
-            # if states_explored % 20 == 0:
-
-            if states_explored % 28 == 0:
-                if states_explored % 140 == 0:
+            if states_explored % 31 == 0:
+                if states_explored % 155 == 0:
                     self.level.game.update_screen()
 
                 # update text and check cancel
-                gen = "Explorés: {exp}     Temps: {el:.2f}s     Vitesse: {sp:.2f} états/s"
-
                 elapsed = time() - start_time
                 speed = states_explored/elapsed
-                message = gen.format(exp=states_explored, el=elapsed, sp=speed)
 
+                message = MSG_SOLVE.format(exp=states_explored, el=elapsed, sp=speed)
                 cancelled = self.level.game.check_cancel(message)
                 if cancelled: break
 
             # self.level.game.debug()
+            # Search for all successor states of current state
             succs = self.successor_states(state)
-
-
-
 
             for st,(box,direct),moves in succs:
                 sthash, stboxes, player = st
@@ -278,6 +274,7 @@ class BoxSolution:
                     h = self.heuristic(st)
 
                     heapq.heappush (prioqueue, (dist+moves+h, dist+moves, st))
+            self.reset_level_state(state)
 
         if not found:
             path = None
