@@ -388,24 +388,18 @@ class Level:
     def solve_all_boxes(self):
         print ("Solving for all boxes!")
         bs = BoxSolution(self, self.boxes)
-        path = bs.solve()
-        return path
+        return bs.solve()
 
 
     def solve_one_box(self, source):
-        print ("Moving one box from", source, "to any target")
+        verbose ("Moving one box from", source, "to any target")
         bs = BoxSolution(self, [source])
-        path = bs.solve()
-        return path
-
-
-
+        return bs.solve()
 
     def move_one_box(self, source, dest):
-        print ("Moving one box from", source, "to", dest)
+        verbose ("Moving one box from", source, "to", dest)
         bs = BoxSolution(self, [source], dest=dest)
-        path = bs.solve()
-        return path
+        return bs.solve()
 
 
     def side_box(self, box, d):
@@ -469,8 +463,8 @@ class Level:
                     if self.is_target((x,y)):
                         window.blit(textures[SOKOBAN.TARGETOVER], pos)
 
-                else:
-                    pygame.draw.rect(window, SOKOBAN.WHITE, (pos[0], pos[1], SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
+                # else:
+                    # pygame.draw.rect(window, SOKOBAN.WHITE, (pos[0], pos[1], SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
 
 
                 h = self.mhighlight[y][x]

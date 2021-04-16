@@ -1,6 +1,6 @@
-SINGLE_FILE = 'Original.txt'
+# SINGLE_FILE = 'Original.txt'
 # SINGLE_FILE = 'Tests.txt'
-# SINGLE_FILE = 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
+SINGLE_FILE = 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
 
 
 # Normally, no need to modify anything below
@@ -66,6 +66,7 @@ BLACK           = (0,0,0)
 BLUE            = (0,0,150)
 GREY            = (200,200,200)
 RED             = (150,0,0)
+GREEN           = (0,150,0)
 
 HOFF  = 0
 HATT  = 1
@@ -76,7 +77,7 @@ HERROR  = 4
 
 # Time delays
 MOVE_DELAY  = 3  # milliseconds
-SOLVE_DELAY = 1000 # milliseconds
+SOLVE_DELAY = 100 # milliseconds
 FLASH_DELAY = 100 # milliseconds
 
 

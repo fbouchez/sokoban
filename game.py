@@ -126,20 +126,16 @@ class Game:
 
         for last,(box,d) in islast(path):
 
-
             verbose ("now path is push", box, "from", SOKOBAN.DNAMES[d])
             pos = self.level.side_box(box, d)
 
             self.animate_move_to(pos)
             oppd = SOKOBAN.OPPOSITE[d]
 
-            # print ("current player pos", self.level.player_position)
-            #
-
             if not skip_last or not last:
                 ret = self.player.move(oppd)
+                assert (ret) # should have changed the level
 
-            assert (ret) # should have changed the level
             self.update_screen()
             if fast:
                 pygame.time.wait(SOKOBAN.FLASH_DELAY)
@@ -154,14 +150,24 @@ class Game:
             self.level_win()
 
 
-    def flash_red (self, pos):
+    def flash_screen (self, pos=None, color=SOKOBAN.RED):
+        if pos is None:
+            surf = pygame.Surface((self.board.get_width(), self.board.get_height()))
+            surf.set_alpha(50)
+            surf.fill(color)
+
         for x in range(4):
-            self.level.highlight([pos], SOKOBAN.HERROR)
+            if pos is not None:
+                self.level.highlight([pos], SOKOBAN.HERROR)
+            else:
+                self.window.blit(surf, self.origin_board)
+            pygame.display.flip()
             pygame.time.wait(SOKOBAN.FLASH_DELAY)
+
+            if pos is not None:
+                self.level.reset_highlight()
             self.update_screen()
-            self.level.reset_highlight()
             pygame.time.wait(SOKOBAN.FLASH_DELAY)
-            self.update_screen()
 
 
     def cancel_selected(self):
@@ -176,17 +182,27 @@ class Game:
             if postype == SOKOBAN.BOX:
                 self.cancel_selected()
 
+                self.player_interface.set_solving(True, num=0)
+
                 # now try to move the box
                 if position == selpos:
                     # same position: auto solving this box to a target
-                    path = self.level.solve_one_box(selpos)
+                    found,message,path = self.level.solve_one_box(selpos)
                 else:
                     # different position: move the box to this area
-                    path = self.level.move_one_box(selpos, position)
+                    found,message,path = self.level.move_one_box(selpos, position)
+
+                self.player_interface.set_solving(True,
+                        message=message,
+                        error=not found
+                    )
+
                 if not path:
-                    self.flash_red(selpos)
+                    self.flash_screen(selpos)
                 else:
                     self.animate_move_boxes(path)
+
+                self.player_interface.set_solving(False)
 
             else:
                 # now we should only select boxes
@@ -260,21 +276,32 @@ class Game:
                 pass
                 path = self.level.move_one_box((8, 3), (4, 3))
                 if not path:
-                    self.flash_red((8,3))
+                    self.flash_screen((8,3))
                 else:
                     self.animate_move_boxes(path)
 
             # "all box solve" key
             elif event.key == K_a:
-                path = self.level.solve_all_boxes()
-                if not path:
-                    self.flash_red((8,3))
-                else:
+                self.player_interface.set_solving(True, num=0)
+                found,message,path = self.level.solve_all_boxes()
+                if not found:
+                    self.player_interface.set_solving(True,
+                            message=message,
+                            error=True
+                            )
+                    self.flash_screen()
                     self.update_screen()
-                    self.player_interface.show_press_key(self.window)
-                    pygame.display.flip()
+                    self.wait_key()
+
+                else:
+                    self.player_interface.set_solving(True,
+                            message=message,
+                            error=False)
+                    self.flash_screen(color=SOKOBAN.GREEN)
                     self.wait_key()
                     self.animate_move_boxes(path, skip_last=True, fast=False)
+
+                self.player_interface.set_solving(False)
 
         elif event.type == MOUSEBUTTONDOWN:
             position = self.player_interface.click(event.pos, self.level)
@@ -290,10 +317,26 @@ class Game:
             #
 
     def wait_key(self):
+        self.update_screen()
+        self.player_interface.show_press_key(self.window)
+        pygame.display.flip()
         while True:
             event = pygame.event.wait()
             if event.type == KEYDOWN or event.type == MOUSEBUTTONDOWN:
                 break
+
+    def update_check_cancel(self, num_states):
+        self.player_interface.set_solving(True, num=num_states)
+        self.update_screen()
+        event = pygame.event.poll()
+
+        while event.type != NOEVENT:
+            if event.type == KEYDOWN \
+            and event.key == K_ESCAPE:
+                self.player_interface.set_solving(False)
+                return True
+            event = pygame.event.poll()
+        return False
 
 
     def debug(self):
@@ -313,8 +356,10 @@ class Game:
 
     def update_screen(self):
         if not self.level.success: return
-        pygame.draw.rect(self.board, SOKOBAN.WHITE, (0,0, self.level.width * SOKOBAN.SPRITESIZE, self.level.height * SOKOBAN.SPRITESIZE))
-        pygame.draw.rect(self.window, SOKOBAN.WHITE, (0,0,SOKOBAN.WINDOW_WIDTH,SOKOBAN.WINDOW_HEIGHT))
+
+        # clear screen
+        self.window.fill(SOKOBAN.WHITE)
+        self.board.fill(SOKOBAN.WHITE)
 
         self.level.render(self.board, self.textures, self.highlights)
         self.player.render(self.board, self.textures)

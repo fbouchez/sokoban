@@ -183,7 +183,7 @@ class BoxSolution:
             assert (self.level.has_box(b))
 
         if self.dest != None and not self.level.is_empty(self.dest):
-            return None
+            return (False, "Destination impossible", None)
 
         # save current state of level w.r.t box & player
         self.save_state = self.level.get_current_state()
@@ -207,6 +207,7 @@ class BoxSolution:
         heapq.heapify(prioqueue)
 
         found = None
+        cancelled = False
 
         states_explored = 0
 
@@ -223,8 +224,8 @@ class BoxSolution:
 
             self.set_level_state(state)
             if states_explored % 100 == 0:
-                print ("states explored:", states_explored)
-                self.level.game.update_screen()
+                cancelled = self.level.game.update_check_cancel(states_explored)
+                if cancelled: break
 
             # self.level.game.debug()
             succs = self.successor_states(state)
@@ -263,14 +264,22 @@ class BoxSolution:
 
         if not found:
             path = None
+            if cancelled:
+                message = "Annulée après exploration de "+str(states_explored)+\
+                " états"
+            else:
+                message = "Échouée après exploration de "+str(states_explored)+\
+                " états (aucune solution possible)"
         else:
             # create path
             path = self.path_from(init_state, found, states)
+            message = "Solution trouvée après exploration de "+str(states_explored)+ " états"
+
 
         # restore level
         self.level.restore_state(self.save_state)
 
-        return path
+        return (found, message, path)
 
     def manhattan(self, source, dest):
         sx,sy = source
@@ -289,8 +298,8 @@ class BoxSolution:
         hdist = 0
         for box in sblist:
             m =self.manhattan(box,self.target)
-            hdist += m*m  ## good for open levels
-            # hdist += m
+            # hdist += m*m  ## good for open levels
+            hdist += m
             # hdist += int(sqrt(m))
         return hdist
 

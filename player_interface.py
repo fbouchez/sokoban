@@ -83,6 +83,7 @@ class PlayerInterface:
         self.font_menu = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 18)
         self.font_win  = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 32)
         self.is_lost=False
+        self.is_solving=False
         self.load_texts()
 
     def load_texts(self):
@@ -117,11 +118,15 @@ class PlayerInterface:
                 callback=None)
         self.txtWin.set_pos(y=80)
 
+
+
+        self.ymessages = SOKOBAN.WINDOW_HEIGHT - 80
+
+
+
         self.txtPress = Text ("(appuyez sur une touche pour continuer)",
                 self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 callback=None)
-
-
 
         y  = self.txtWin.pos[1]
         y += self.txtWin.surf.get_height()+40
@@ -130,17 +135,23 @@ class PlayerInterface:
         self.txtLost = Text ("Résolution impossible (certaines boîtes sont définitivement coincées)",
                 self.font_menu, SOKOBAN.RED, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 callback=None)
-        self.txtLost.set_pos(y=SOKOBAN.WINDOW_HEIGHT - 80)
+        self.txtLost.set_pos(y=self.ymessages)
 
-        self.texts = [
-                self.txtLevel,
+        self.txtResol = Text (" ",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                callback=None)
+        self.txtResol.set_pos(y=self.ymessages)
+
+
+        self.clickableTexts = [
+                # self.txtLevel,
                 self.txtCancel,
                 self.txtReset,
                 self.txtVisu,
                 self.txtHelp,
-                self.txtMoves,
-                self.txtPress,
-                self.txtLost
+                # self.txtMoves,
+                # self.txtPress,
+                # self.txtLost
                 ]
 
 
@@ -151,7 +162,7 @@ class PlayerInterface:
 
     def click(self, pos_click, level):
         # check if some text has been clicked
-        for t in self.texts:
+        for t in self.clickableTexts:
             if t.is_clicked(pos_click, do_callback=True):
                 return None
 
@@ -169,8 +180,7 @@ class PlayerInterface:
 
     def show_win(self, window, levelNum):
         self.txtWin.render(window, "Félicitations, niveau " + str(levelNum) + " terminé")
-        self.txtPress.render(window)
-
+        self.show_press_key(window)
 
     def show_press_key(self, window):
         self.txtPress.render(window)
@@ -179,6 +189,17 @@ class PlayerInterface:
     def set_lost_state(self, lost):
         self.is_lost = lost
 
+    def set_solving(self, flag, num=None, message=None, error=False):
+        self.is_solving = flag
+        if num is not None:
+            self.txtResol.update("Résolution en cours, " + str(num) +
+                    " états explorés (Esc pour annuler)")
+        if message is not None:
+            self.txtResol.update(message)
+        if error:
+            self.txtResol.change_color(SOKOBAN.RED)
+        else:
+            self.txtResol.change_color(SOKOBAN.BLACK)
 
     def render(self, window, levelNum, level):
 
@@ -190,3 +211,6 @@ class PlayerInterface:
         self.txtHelp.render(window)
         if self.is_lost:
             self.txtLost.render(window)
+
+        if self.is_solving:
+            self.txtResol.render(window)
