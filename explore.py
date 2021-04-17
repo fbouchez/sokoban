@@ -162,7 +162,7 @@ class BoxSolution:
         _, boxes, player = state
 
         if not self.dest is None:
-            box = tblist[0]
+            box = boxes[0]
             return box == self.dest
 
         # otherwise, check all boxes are on targets

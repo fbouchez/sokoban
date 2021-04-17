@@ -7,6 +7,7 @@ from explore import *
 from player import *
 from scores import *
 from interface import *
+from queue import Queue
 
 KEYDIR = {
         K_UP: SOKOBAN.UP,
@@ -107,16 +108,6 @@ class Game:
         else:
             self.player = Player(self.level)
 
-    def toggle_visualize(self):
-        """
-        Activate/deactivate visual mode (attainable squares+pushable)
-        """
-        self.has_changed = True
-        self.visual = not(self.visual)
-        if not self.visual:
-            self.level.reset_highlight()
-
-
     def start(self):
         if not self.level.loaded:
             print ("Plus de niveaux disponibles")
@@ -126,9 +117,38 @@ class Game:
             # pygame.display.flip()
             return
 
+        clock = pygame.time.Clock()
+
+        q = Queue(maxsize=1000)
+        clock.tick()
+        total_time=0
+        fps_message="{fps:.2f} fps"
+
         while self.play:
             self.update_screen()
             self.process_event(pygame.event.wait())
+            # self.process_event(pygame.event.poll())
+
+            # t = clock.tick(12)
+            t = clock.tick()
+            total_time += t
+            q.put(t)
+            if q.qsize() >= 60:
+                l = q.get()
+                total_time -= l
+                fps = 60 / total_time * 1000
+                print(fps_message.format(fps=fps), total_time, end="\r")
+
+
+    def toggle_visualize(self):
+        """
+        Activate/deactivate visual mode (attainable squares+pushable)
+        """
+        self.has_changed = True
+        self.visual = not(self.visual)
+        if not self.visual:
+            self.level.reset_highlight()
+
 
 
     def animate_move_to(self, position):
@@ -194,50 +214,6 @@ class Game:
     def cancel_selected(self):
         self.selected_position = None
         self.level.reset_highlight()
-
-
-    def click_pos (self, position):
-        if self.selected_position:
-            postype, selpos = self.selected_position
-
-            if postype == SOKOBAN.BOX:
-                self.cancel_selected()
-
-                self.interface.set_solving(True, num=0)
-
-                # now try to move the box
-                if position == selpos:
-                    # same position: auto solving this box to a target
-                    found,message,path = self.level.solve_one_box(selpos)
-                else:
-                    # different position: move the box to this area
-                    found,message,path = self.level.move_one_box(selpos, position)
-
-                self.interface.set_solving(True,
-                        message=message,
-                        error=not found
-                    )
-
-                if not path:
-                    self.flash_screen(selpos)
-                else:
-                    self.animate_move_boxes(path)
-
-                self.interface.set_solving(False)
-
-            else:
-                # now we should only select boxes
-                assert(false)
-            return
-
-        # nothing selected yet
-        if self.level.has_box(position):
-            # selecting a box
-            self.selected_position = (SOKOBAN.BOX, position)
-            self.level.highlight([position], SOKOBAN.HSELECT)
-        else:
-            # trying to move the character
-            self.animate_move_to(position)
 
 
 
@@ -339,9 +315,56 @@ class Game:
         # else:
             # print ("Unknown event:", event)
             #
+            #
 
-    def wait_key(self):
-        self.update_screen()
+
+    def click_pos (self, position):
+        if self.selected_position:
+            postype, selpos = self.selected_position
+
+            if postype == SOKOBAN.BOX:
+                self.cancel_selected()
+
+                self.interface.set_solving(True, num=0)
+
+                # now try to move the box
+                if position == selpos:
+                    # same position: auto solving this box to a target
+                    found,message,path = self.level.solve_one_box(selpos)
+                else:
+                    # different position: move the box to this area
+                    found,message,path = self.level.move_one_box(selpos, position)
+
+                self.interface.set_solving(True,
+                        message=message,
+                        error=not found
+                    )
+
+                if not path:
+                    self.flash_screen(selpos)
+                else:
+                    self.animate_move_boxes(path)
+
+                self.interface.set_solving(False)
+
+            else:
+                # now we should only select boxes
+                assert(false)
+            return
+
+        # nothing selected yet
+        if self.level.has_box(position):
+            # selecting a box
+            self.selected_position = (SOKOBAN.BOX, position)
+            self.level.highlight([position], SOKOBAN.HSELECT)
+        else:
+            # trying to move the character
+            self.animate_move_to(position)
+
+
+    def wait_key(self, update=True):
+        if update:
+            self.update_screen()
         self.interface.show_press_key(self.window)
         pygame.display.flip()
         while True:
@@ -363,23 +386,7 @@ class Game:
             event = pygame.event.poll()
         return False
 
-
-    def debug(self):
-        self.update_screen()
-        print ("Waiting for keypress...")
-        self.wait_key()
-
-    def level_win(self):
-        self.scores.save()
-        self.update_screen()
-        self.interface.show_win(self.window, self.index_level)
-        pygame.display.flip()
-        self.wait_key()
-
-        self.load_level(nextLevel=True)
-
-
-    def update_screen(self):
+    def update_screen(self, flip=True):
         # if not self.level.loaded: return
 
         # clear screen
@@ -402,7 +409,8 @@ class Game:
 
         self.interface.render(self.window, self.index_level, self.level)
 
-        pygame.display.flip()
+        if flip:
+            pygame.display.flip()
 
     def has_win(self):
         nb_missing_target = 0
@@ -414,3 +422,19 @@ class Game:
                         nb_missing_target += 1
 
         return nb_missing_target == 0
+
+    def level_win(self):
+        self.scores.save()
+        self.update_screen(flip=False)
+        self.interface.show_win(self.window, self.index_level)
+        self.wait_key(update=False)
+
+        self.load_level(nextLevel=True)
+
+
+    def debug(self):
+        self.update_screen()
+        print ("Waiting for keypress...")
+        self.wait_key()
+
+

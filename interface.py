@@ -269,11 +269,9 @@ class Interface:
 
     def show_win(self, window, levelNum):
         self.txtWin.render(window, "Félicitations, niveau " + str(levelNum) + " terminé")
-        self.show_press_key(window)
 
     def show_press_key(self, window):
         self.txtPress.render(window)
-
 
     def set_lost_state(self, lost):
         self.is_lost = lost
