@@ -179,7 +179,7 @@ class Interface:
 
         self.txtCancel = Text("Annuler le dernier coup (C)",
                 self.font_messages, SOKOBAN.GREY, SOKOBAN.ARIGHT, SOKOBAN.ATOP,
-                callback=self.cancel)
+                callback=self.game.cancel_move)
 
         self.txtReset = Text("Recommencer le niveau (R)",
                 self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ATOP,
@@ -243,12 +243,6 @@ class Interface:
                 # self.txtLost
                 ]
 
-
-    def cancel(self):
-        ret = self.level.cancel_last_change()
-        if not ret:
-            self.txtCancel.change_color(SOKOBAN.GREY)
-
     def click(self, pos_click, level):
         # check if some text has been clicked
         for t in self.clickableTexts:
@@ -276,6 +270,11 @@ class Interface:
     def set_lost_state(self, lost):
         self.is_lost = lost
 
+    def activate_cancel(self):
+        self.txtCancel.change_color(SOKOBAN.BLACK)
+
+    def deactivate_cancel(self):
+        self.txtCancel.change_color(SOKOBAN.GREY)
 
 
     def display_info(self, message=None, error=False):

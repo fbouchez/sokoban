@@ -117,20 +117,22 @@ class Game:
             # pygame.display.flip()
             return
 
-        clock = pygame.time.Clock()
+        self.clock = pygame.time.Clock()
 
         q = Queue(maxsize=1000)
-        clock.tick()
+        self.clock.tick()
         total_time=0
         fps_message="{fps:.2f} fps"
 
+        # main loop
         while self.play:
             self.update_screen()
             self.process_event(pygame.event.wait())
+
             # self.process_event(pygame.event.poll())
 
-            # t = clock.tick(12)
-            t = clock.tick()
+            # t = self.fclock.tick(SOKOBAN.TARGET_FPS)
+            t = self.clock.tick()
             total_time += t
             q.put(t)
             if q.qsize() >= 60:
@@ -215,9 +217,17 @@ class Game:
         self.selected_position = None
         self.level.reset_highlight()
 
+    def cancel_move(self):
+        remaining = self.level.cancel_last_change()
+        if not remaining:
+            self.interface.deactivate_cancel()
+
+
 
 
     def process_event(self, event):
+        print ('processing event', event)
+        print ('status', self.player.status)
         if event.type == QUIT:
             pygame.quit()
             sys.exit(0)
@@ -230,21 +240,7 @@ class Game:
                 return
 
             elif event.key in KEYDIR.keys():
-                direction = KEYDIR[event.key]
-
-                # Move player
-                self.has_changed = self.player.move(direction)
-                if self.has_changed:
-                    self.interface.txtCancel.change_color(SOKOBAN.BLACK)
-
-                if self.has_win():
-                    self.level_win()
-                    return
-
-                lost = self.level.lost_state()
-                if lost:
-                    verbose ("Lost state !")
-                self.interface.set_lost_state(lost)
+                self.move_player(event.key)
 
             elif event.key == K_k: # cheat key :-)
                     self.load_level(nextLevel=True)
@@ -262,11 +258,10 @@ class Game:
 
             elif event.key == K_c:
                 # Cancel last move
-                self.interface.cancel()
-
+                self.cancel_move()
                 lost = self.level.lost_state()
                 if lost:
-                    verbose ("Lost state !")
+                    verbose ("Still lost state !")
                 self.interface.set_lost_state(lost)
 
 
@@ -316,6 +311,77 @@ class Game:
             # print ("Unknown event:", event)
             #
             #
+
+    def move_player(self, key):
+        direction = KEYDIR[key]
+
+        # Move player
+        status = self.player.start_move(direction)
+
+        if self.level.has_cancelable():
+            self.interface.activate_cancel()
+
+        if status == SOKOBAN.ST_IDLE:
+            return
+
+        prev_status = status
+
+        # otherwise, keep the motion going until key is released
+        stop = False
+
+        # save one key down event to have smooth turning
+        save_event = None
+        while True:
+            # slows loop to target FPS
+            t = self.clock.tick(SOKOBAN.TARGET_FPS)
+
+            if not stop:
+                event = pygame.event.poll()
+                # process & clear events
+                while event.type != NOEVENT:
+                    if event.type == QUIT:
+                        pygame.quit()
+                        sys.exit(0)
+                    if event.type == KEYDOWN:
+                        save_event = event
+                    if event.type == KEYUP \
+                    and event.key == key:
+                        # stop moving at next tile
+                        stop = True
+                        if save_event is not None:
+                            pygame.event.post(save_event)
+                        break
+                    else:
+                        print ('discarding event', event)
+                    event = pygame.event.poll()
+
+            on_tile = self.player.continue_move()
+
+            if on_tile:
+                if prev_status == S.ST_PUSHING:
+                    # check if winable state
+                    # before continuing
+                    if self.has_win():
+                        self.level_win()
+                        return
+
+                    # or if position is lost...
+                    lost = self.level.lost_state()
+                    if lost:
+                        verbose ("Lost state !")
+                    self.interface.set_lost_state(lost)
+
+                # stop if key not pressed anymore
+                if stop:
+                    self.player.stop_move()
+                    print ("and we stop !")
+                    break
+                print ("We are on a tile... and continuing")
+
+            prev_status = status
+            status = self.player.status
+
+            self.update_screen()
 
 
     def click_pos (self, position):
@@ -403,14 +469,15 @@ class Game:
 
         pos_x_board = (SOKOBAN.WINDOW_WIDTH // 2) - (self.board.get_width() // 2)
         pos_y_board = (SOKOBAN.WINDOW_HEIGHT // 2) - (self.board.get_height() // 2)
-        self.window.blit(self.board, (pos_x_board, pos_y_board))
-
         self.origin_board = (pos_x_board, pos_y_board)
+        self.window.blit(self.board, self.origin_board)
+
 
         self.interface.render(self.window, self.index_level, self.level)
 
         if flip:
             pygame.display.flip()
+
 
     def has_win(self):
         nb_missing_target = 0

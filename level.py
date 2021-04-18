@@ -1,5 +1,5 @@
 import pygame
-import constants as SOKOBAN
+import constants as S
 from copy import deepcopy
 from explore import *
 from utils import *
@@ -47,20 +47,20 @@ class Level:
                 block = symbols.index(rows[y][x])
                 level_row.append(block)
 
-                if block == SOKOBAN.BOX:
-                    level_row[-1] = SOKOBAN.GROUND
+                if block == S.BOX:
+                    level_row[-1] = S.GROUND
                     self.boxes.append((x,y))
 
-                elif block == SOKOBAN.TARGET_FILLED:
-                    level_row[-1] = SOKOBAN.TARGET
+                elif block == S.TARGET_FILLED:
+                    level_row[-1] = S.TARGET
                     self.boxes.append((x,y))
 
-                elif block == SOKOBAN.PLAYER:
-                    level_row[-1] = SOKOBAN.GROUND
+                elif block == S.PLAYER:
+                    level_row[-1] = S.GROUND
                     self.player_position = (x,y)
 
-                elif block == SOKOBAN.PLAYER_ON_GOAL:
-                    level_row[-1] = SOKOBAN.TARGET
+                elif block == S.PLAYER_ON_GOAL:
+                    level_row[-1] = S.TARGET
                     self.player_position = (x,y)
 
 
@@ -71,7 +71,7 @@ class Level:
 
         for y in range(height):
             while len(self.map[y]) < max_width:
-                self.map[y].append(SOKOBAN.AIR)
+                self.map[y].append(S.AIR)
 
 
 
@@ -92,7 +92,7 @@ class Level:
         try:
             with open("assets/levels/level_" + str(levelnum) + ".txt") as level_file:
                 rows = level_file.read().split('\n')
-            self.parse_rows(rows, SOKOBAN.SYMBOLS_MODERN)
+            self.parse_rows(rows, S.SYMBOLS_MODERN)
             return True
         except FileNotFoundError:
             return False
@@ -152,23 +152,23 @@ class Level:
                 return False
 
             self.title, rows = self.single_file_levels[levelnum-1]
-            self.parse_rows(rows, SOKOBAN.SYMBOLS_ORIGINALS)
+            self.parse_rows(rows, S.SYMBOLS_ORIGINALS)
         else:
             ret = self.load_file_by_file(levelnum=levelnum)
             if not ret:
                 return False
 
-        self.width = self.map_width * SOKOBAN.SPRITESIZE
-        self.height = self.map_height * SOKOBAN.SPRITESIZE
+        self.width = self.map_width * S.SPRITESIZE
+        self.height = self.map_height * S.SPRITESIZE
 
         dij = Dijkstra(self)
         att = dij.attainable(self.player_position, boxes_block=False)
         for x,y in att:
-            if self.map[y][x] == SOKOBAN.AIR:
-                self.map[y][x] = SOKOBAN.GROUND
+            if self.map[y][x] == S.AIR:
+                self.map[y][x] = S.GROUND
 
         # highlight on some tiles
-        self.mhighlight = [[SOKOBAN.HOFF for x in range(self.map_width)] for y in range(self.map_height)]
+        self.mhighlight = [[S.HOFF for x in range(self.map_width)] for y in range(self.map_height)]
 
         # no previous move to cancel
         self.state_stack = []
@@ -179,10 +179,10 @@ class Level:
     def reset_highlight (self):
         for y in range(self.map_height):
             for x in range(self.map_width):
-                self.mhighlight[y][x] = SOKOBAN.HOFF
+                self.mhighlight[y][x] = S.HOFF
 
 
-    def highlight (self, positions, htype=SOKOBAN.HATT):
+    def highlight (self, positions, htype=S.HATT):
         for x,y in positions:
             self.mhighlight[y][x] = htype
 
@@ -192,17 +192,17 @@ class Level:
 
     def is_target (self, pos):
         x,y = pos
-        return self.map[y][x] in [SOKOBAN.TARGET, SOKOBAN.TARGET_FILLED]
+        return self.map[y][x] in [S.TARGET, S.TARGET_FILLED]
 
     def is_wall (self, pos):
         x,y = pos
-        return self.map[y][x] == SOKOBAN.WALL
+        return self.map[y][x] == S.WALL
 
 
 
     def is_empty (self, pos):
         x,y = pos
-        return self.map[y][x] in [SOKOBAN.GROUND, SOKOBAN.TARGET, SOKOBAN.PLAYER] \
+        return self.map[y][x] in [S.GROUND, S.TARGET, S.PLAYER] \
                 and not self.has_box(pos)
 
 
@@ -228,9 +228,9 @@ class Level:
 
             if self.is_target(box): continue
             prev = False
-            for d in SOKOBAN.AROUND:
+            for d in S.AROUND:
                 # if disp:
-                    # print ("cheking", SOKOBAN.DNAMES[d])
+                    # print ("cheking", S.DNAMES[d])
                 side = in_dir(box, d)
                 blocked = self.is_wall(side)
                 if prev and blocked:
@@ -243,11 +243,11 @@ class Level:
                         # print ("there is a box copain", x,y)
                     # check if close to a wall
                     if horizontal(d):
-                        d1 = SOKOBAN.UP
-                        d2 = SOKOBAN.DOWN
+                        d1 = S.UP
+                        d2 = S.DOWN
                     else:
-                        d1 = SOKOBAN.LEFT
-                        d2 = SOKOBAN.RIGHT
+                        d1 = S.LEFT
+                        d2 = S.RIGHT
                         # check above and below
                     ub = in_dir(box, d1)
                     us = in_dir(side,d1)
@@ -266,12 +266,15 @@ class Level:
 
     def get_current_state(self):
         return { 'mboxes': deepcopy(self.mboxes),
-                 'player': self.player_position }
+                 'player': self.player_position,
+                 'moves' : self.num_moves
+                 }
 
     def restore_state(self, state):
         self.mboxes = state['mboxes']
         self.update_box_positions()
         self.player_position = state['player']
+        self.num_moves = state['moves']
         self.invalidate()
 
     def push_state(self):
@@ -284,7 +287,7 @@ class Level:
 
         # print ("trying to move", x,"x",y," in direction",direction)
 
-        playerHasMoved  = False
+        player_status  = S.ST_IDLE
         levelHasChanged = False
 
         xx = x+move_x
@@ -299,12 +302,12 @@ class Level:
         if self.is_empty((xx,yy)):
             # Player just moved on an empty cell
             self.player_position = (xx,yy)
-            playerHasMoved  = True
+            player_status  = S.ST_MOVING
 
         elif self.has_box((xx,yy)) and self.is_empty((xx2,yy2)):
             # Player is trying to push a box
 
-            levelHasChanged = True
+            player_status  = S.ST_PUSHING
 
             # Save current state
             self.push_state()
@@ -316,14 +319,12 @@ class Level:
             self.mboxes[yy2][xx2] = True
 
             self.player_position = (xx,yy)
-            playerHasMoved  = True
 
-
-        if playerHasMoved:
+        if player_status != S.ST_IDLE:
             self.invalidate()
             self.num_moves += 1
 
-        return levelHasChanged
+        return player_status
 
 
     def compute_attainable(self,virtual=False):
@@ -345,8 +346,8 @@ class Level:
         mark = self.compute_attainable(virtual)
         l = []
         for bx,by in boxlist:
-            sides = [False for d in SOKOBAN.DIRS]
-            for d,(mx,my) in enumerate(SOKOBAN.DIRS):
+            sides = [False for d in S.DIRS]
+            for d,(mx,my) in enumerate(S.DIRS):
                 if mark[by+my][bx+mx]:
                     sides[d] = True
             l.append(tuple(sides))
@@ -361,7 +362,7 @@ class Level:
         mark = self.dij.get_marks()
         succ = []
         bx,by = boxpos
-        for mx,my in SOKOBAN.DIRS:
+        for mx,my in S.DIRS:
             if mark[by+my][bx+mx] \
             and self.is_empty((bx-mx, by-my)):
                 # side is attainable
@@ -376,7 +377,7 @@ class Level:
         mark = self.dij.get_marks()
         succ = []
         for bx,by in self.boxes:
-            for mx,my in SOKOBAN.DIRS:
+            for mx,my in S.DIRS:
                 if mark[by+my][bx+mx] \
                 and self.is_empty((bx-mx, by-my)):
                     # side is attainable
@@ -416,7 +417,7 @@ class Level:
 
     def side_box(self, box, d):
         bx,by = box
-        mx,my = SOKOBAN.DIRS[d]
+        mx,my = S.DIRS[d]
         return bx+mx,by+my
 
 
@@ -426,10 +427,10 @@ class Level:
 
         self.compute_attainable()
 
-        self.highlight(self.dij.att_list, SOKOBAN.HATT)
+        self.highlight(self.dij.att_list, S.HATT)
 
         succ = self.compute_boxes_successors()
-        self.highlight(succ, SOKOBAN.HSUCC)
+        self.highlight(succ, S.HSUCC)
 
 
     def invalidate(self):
@@ -457,26 +458,29 @@ class Level:
         self.restore_state(state)
         return self.state_stack != []
 
+    def has_cancelable(self):
+        return self.state_stack != []
+
 
     def render(self, window, textures, highlights):
 
         for y in range(self.map_height):
             for x in range(self.map_width):
-                pos = (x * SOKOBAN.SPRITESIZE, y * SOKOBAN.SPRITESIZE)
+                pos = (x * S.SPRITESIZE, y * S.SPRITESIZE)
 
                 if self.mboxes[y][x]:
                     if self.is_target((x,y)):
-                        window.blit(textures[SOKOBAN.TARGET_FILLED], pos)
+                        window.blit(textures[S.TARGET_FILLED], pos)
                     else:
-                        window.blit(textures[SOKOBAN.BOX], pos)
+                        window.blit(textures[S.BOX], pos)
 
                 elif self.map[y][x] in textures:
                     window.blit(textures[self.map[y][x]], pos)
                     if self.is_target((x,y)):
-                        window.blit(textures[SOKOBAN.TARGETOVER], pos)
+                        window.blit(textures[S.TARGETOVER], pos)
 
                 # else:
-                    # pygame.draw.rect(window, SOKOBAN.WHITE, (pos[0], pos[1], SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
+                    # pygame.draw.rect(window, S.WHITE, (pos[0], pos[1], S.SPRITESIZE, S.SPRITESIZE))
 
 
                 h = self.mhighlight[y][x]
