@@ -106,7 +106,7 @@ class Game:
             self.interface.level = self.level
             self.player.level = self.level
         else:
-            self.player = Player(self.level)
+            self.player = Player(self, self.level)
 
     def start(self):
         if not self.level.loaded:
@@ -226,8 +226,6 @@ class Game:
 
 
     def process_event(self, event):
-        print ('processing event', event)
-        print ('status', self.player.status)
         if event.type == QUIT:
             pygame.quit()
             sys.exit(0)
@@ -312,48 +310,62 @@ class Game:
             #
             #
 
+
     def move_player(self, key):
+        """
+        A direction key has been pressed.
+        Move (or try to move) the player in this direction
+        until the key is released
+        """
         direction = KEYDIR[key]
 
-        # Move player
+        # Ask to move player
         status = self.player.start_move(direction)
 
+        # after a box has been moved, the 'cancel' button becomes
+        # available
         if self.level.has_cancelable():
             self.interface.activate_cancel()
 
+        # move failed (e.g., character against a wall)
         if status == SOKOBAN.ST_IDLE:
             return
 
+        # keep previous status to check if there is a win (only when status was 
+        # 'pushing'
         prev_status = status
 
-        # otherwise, keep the motion going until key is released
+        # Keep the motion going until key is released
         stop = False
 
-        # save one key down event to have smooth turning
+        # save one keydown event to have smooth turning
         save_event = None
         while True:
             # slows loop to target FPS
             t = self.clock.tick(SOKOBAN.TARGET_FPS)
 
             if not stop:
-                event = pygame.event.poll()
-                # process & clear events
-                while event.type != NOEVENT:
+                # discard all events but:
+                # quit
+                # release of direction key
+                # press of a new key (save it for later)
+                while True:
+                    event = pygame.event.poll()
+                    if event.type == NOEVENT: break
                     if event.type == QUIT:
                         pygame.quit()
                         sys.exit(0)
                     if event.type == KEYDOWN:
                         save_event = event
-                    if event.type == KEYUP \
+                    elif event.type == KEYUP \
                     and event.key == key:
-                        # stop moving at next tile
+                        # keep moving but stop at next tile
                         stop = True
                         if save_event is not None:
+                            # put back the pressed key so it will be processed 
+                            # by the main loop as soon as this function returns
                             pygame.event.post(save_event)
                         break
-                    else:
-                        print ('discarding event', event)
-                    event = pygame.event.poll()
 
             on_tile = self.player.continue_move()
 
@@ -371,12 +383,10 @@ class Game:
                         verbose ("Lost state !")
                     self.interface.set_lost_state(lost)
 
-                # stop if key not pressed anymore
+                # key not pressed anymore and finished arriving on the tile
                 if stop:
                     self.player.stop_move()
-                    print ("and we stop !")
                     break
-                print ("We are on a tile... and continuing")
 
             prev_status = status
             status = self.player.status

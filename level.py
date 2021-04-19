@@ -15,6 +15,7 @@ class Level:
         self.level_number = 0
         self.load_file()    # read whole file
         self.loaded = False # True when a level is loaded
+        self.pushed_box = None
 
     def place_box(self, box):
         x,y=box
@@ -288,7 +289,6 @@ class Level:
         # print ("trying to move", x,"x",y," in direction",direction)
 
         player_status  = S.ST_IDLE
-        levelHasChanged = False
 
         xx = x+move_x
         yy = y+move_y
@@ -306,6 +306,7 @@ class Level:
 
         elif self.has_box((xx,yy)) and self.is_empty((xx2,yy2)):
             # Player is trying to push a box
+            self.pushed_box = (xx2,yy2)
 
             player_status  = S.ST_PUSHING
 
@@ -325,6 +326,15 @@ class Level:
             self.num_moves += 1
 
         return player_status
+
+    def hide_pushed_box(self):
+        x,y = self.pushed_box
+        self.mboxes[y][x] = False
+
+    def show_pushed_box(self):
+        x,y = self.pushed_box
+        self.mboxes[y][x] = True
+
 
 
     def compute_attainable(self,virtual=False):
