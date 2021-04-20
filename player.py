@@ -12,6 +12,8 @@ class Player:
         self.frames=0
         self.status=S.ST_IDLE
         self.move_from=None
+        self.sprite_idx=0 # which sprite to use for animation
+        self.anim_frame_num=0
 
     def load_textures(self):
         sheet = self.game.textures[S.PLAYER]
@@ -78,6 +80,12 @@ class Player:
     def render(self, window, textures):
         x,y = self.level.player_position
 
+        self.anim_frame_num += 1
+        if self.anim_frame_num >= S.FRAMES_PER_ANIM:
+            self.anim_frame_num = 0
+            self.sprite_idx += 1
+            self.sprite_idx %= S.SPRITE_PLAYER_NUM
+
         if self.frames == 0:
             xpos = x * S.SPRITESIZE
             ypos = y * S.SPRITESIZE
@@ -90,8 +98,6 @@ class Player:
             xpos = int((x+mrx) * S.SPRITESIZE)
             ypos = int((y+mry) * S.SPRITESIZE)
 
-            frame = (self.frames // S.FRAMES_PER_ANIM) % S.SPRITE_PLAYER_NUM
-
             # draw the box in front of the character
             mbx,mby = self.move_to
 
@@ -100,5 +106,5 @@ class Player:
                 window.blit(self.game.textures[S.BOX], 
                         (xpos+mbx*S.SPRITESIZE, ypos+mby*S.SPRITESIZE))
 
-        window.blit(self.textures[self.direction][frame], (xpos, ypos))
+        window.blit(self.textures[self.direction][self.sprite_idx], (xpos, ypos))
 

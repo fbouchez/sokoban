@@ -86,9 +86,19 @@ MOVE_DELAY  = 3  # milliseconds
 SOLVE_DELAY = 100 # milliseconds
 FLASH_DELAY = 100 # milliseconds
 
-FRAMES_PER_ANIM = 3 # number of identical successif frames for animations
-MOVE_FRAMES = 9 # number of frames for a move
-TARGET_FPS  = 40 # number of frames for a move
+
+ # number of identical successive frames for animations
+FRAMES_PER_ANIM = 12
+
+# number of frames for a move: less makes character move faster but not enough
+# makes movement 'jerky'
+# better to make it a fraction of SPRITESIZE
+MOVE_FRAMES = 8
+# MOVE_FRAMES = 1
+
+# number of frames for a move: more makes character move faster but consumes 
+# more CPU
+TARGET_FPS  = 40
 
 
 # Player states

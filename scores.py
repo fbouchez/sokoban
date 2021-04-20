@@ -2,9 +2,15 @@ import json
 import constants as SOKOBAN
 
 class Scores:
+    """
+    Class to save number of moves for each solved level.
+    Scores are writen to and read from a 'scores' file.
+    """
+
     def __init__(self, game):
         self.game = game
         self.scores = None
+        self.load()
 
     def template(self):
         t = {

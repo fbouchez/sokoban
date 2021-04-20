@@ -10,6 +10,7 @@ from interface import *
 from queue import Queue
 
 KEYDIR = {
+        # regular arrow keys
         K_UP: SOKOBAN.UP,
         K_DOWN: SOKOBAN.DOWN,
         K_LEFT: SOKOBAN.LEFT,
@@ -20,6 +21,8 @@ KEYDIR = {
         K_q: SOKOBAN.LEFT,
         K_d: SOKOBAN.RIGHT
 }
+
+# keyboard keys corresponding to move directions
 DIRKEY = [
         K_UP,
         K_DOWN,
@@ -29,17 +32,27 @@ DIRKEY = [
 
 
 class Game:
+    """
+    Class for a game of Sokoban.
+    This is where the actions are decided, based on key presses,
+    interaction with the graphical interface via the mouse,
+    or from movements discovered using the Artificial Intelligence.
+    Arguments:
+    - window: where to draw things
+    - continueGame: whether to continue from last saved level (from the 
+      'scores' file) or to restart at level 1.
+
+    """
     def __init__(self, window, continueGame=True):
         self.window = window
-        self.load_textures()
         self.player = None
         self.interface = None
         self.level = self.level = Level(self, 
-                SOKOBAN.SINGLE_FILE,
+                SOKOBAN.SINGLE_FILE, # filename
                 single_file=True
                 )
         self.scores = Scores(self)
-        self.scores.load()
+        self.load_textures()
 
         if continueGame:
             self.index_level = self.scores.last_level()
@@ -47,7 +60,7 @@ class Game:
             self.index_level = 0
 
         self.interface = Interface(self)
-        self.play = False
+        self.playing = False
         self.visual = False
         self.has_changed = False
         self.selected_position = None
@@ -72,10 +85,12 @@ class Game:
             surf.fill(color) # green highlight
             return surf
 
-        surfAtt  = surfhigh((0,255,0),50) # green highlight
-        surfSucc = surfhigh((0,0,255),50) # blue highlight
-        surfSelect= surfhigh((255,255,0),200) # yellow highlight
-        surfError = surfhigh((255,0,0),200) # red highlight
+        # small surfaces to draw attention to a particular tile of the board
+        # e.g., to highlight a tile
+        surfAtt  = surfhigh((0,255,0),50) # green highlight, for attainable tiles
+        surfSucc = surfhigh((0,0,255),50) # blue highlight,  to show successors of boxes
+        surfSelect= surfhigh((255,255,0),200) # yellow highlight, to show selection
+        surfError = surfhigh((255,0,0),200) # red highlight, in case of an error
 
         self.highlights = {
                 SOKOBAN.HATT:   surfAtt,
@@ -87,6 +102,7 @@ class Game:
     def load_level(self, nextLevel=False, prevLevel=False):
         """
         load (or reload) current level or previous/next level
+        Return True on success and False if it was not possible to load a level.
         """
         if nextLevel:
             self.index_level += 1
@@ -96,8 +112,8 @@ class Game:
         self.level.load(self.index_level)
 
         if not self.level.loaded:
+            ## We tried to load past the last available level
             print ("Plus de niveau disponible")
-            ## Cannot use interface since it is only when a level is loaded
             self.interface.display_info("Plus de niveau disponible", error=True)
             self.interface.txtInfo.render(self.window)
             self.wait_key(update=False)
@@ -105,8 +121,8 @@ class Game:
 
         assert(self.interface)
 
-        self.play = True
-
+        self.playing = True
+        # connect interface to level
         self.interface.set_level(
                 self.level,
                 self.index_level,
@@ -126,25 +142,23 @@ class Game:
         """
         main loop of  the game
         """
-        ret = self.load_level(nextLevel=True)
-        if not ret:
-            return
+        loaded = self.load_level(nextLevel=True)
+        if not loaded: return
 
+        # code to test performance: compute the number of frames per second 
+        # (FPS)
         self.clock = pygame.time.Clock()
-
         q = Queue(maxsize=1000)
         self.clock.tick()
         total_time=0
         fps_message="{fps:.2f} fps"
 
         # main loop
-        while self.play:
+        while self.playing:
             self.update_screen()
             self.process_event(pygame.event.wait())
 
-            # self.process_event(pygame.event.poll())
-
-            # t = self.fclock.tick(SOKOBAN.TARGET_FPS)
+            # new frame: store number of milliseconds passed since previous call
             t = self.clock.tick()
             total_time += t
             q.put(t)
@@ -157,28 +171,40 @@ class Game:
 
     def toggle_visualize(self):
         """
-        Activate/deactivate visual mode (attainable squares+pushable)
+        Activate/deactivate visual mode:
+        - mark ATT the attainable squares (without pushing any box)
+        - mark SUCC the position where a box can be pushed
         """
         self.has_changed = True
         self.visual = not(self.visual)
         if not self.visual:
+            # disable highlighted tiles if going out of visual aid
             self.level.reset_highlight()
 
 
 
     def animate_move_to(self, position):
+        """
+        Move the character to 'position' by computing the shortest path
+        then moving it along the path.
+        """
         path = self.level.path_to(position)
-        if not path:
-            return
+        if not path: return
+
+        # speed up movement
+        save_anim=S.MOVE_FRAMES
+        S.MOVE_FRAMES=1
 
         for d in path:
-            # self.player.move(d)
             # simulate key presses
             key = DIRKEY[d]
-            self.move_player(key, only_once=True)
+            self.move_player(key)
 
             self.update_screen()
             pygame.time.wait(SOKOBAN.MOVE_DELAY)
+
+        # restore movement speed
+        S.MOVE_FRAMES=save_anim
 
 
     def animate_move_boxes(self, path, skip_last=False, fast=True):
@@ -194,7 +220,7 @@ class Game:
 
             if not skip_last or not last:
                 key = DIRKEY[oppd]
-                self.move_player(key, only_once=True)
+                self.move_player(key)
 
             self.update_screen()
 
@@ -247,16 +273,16 @@ class Game:
             self.cancel_selected()
             if event.key == K_ESCAPE:
                 # Quit game
-                self.play = False
+                self.playing = False
                 return
 
             elif event.key in KEYDIR.keys():
-                self.move_player(event.key)
+                self.move_player(event.key, continue_until_released=True)
 
             elif event.key == K_n: # cheat key :-)
                 ret = self.load_level(nextLevel=True)
                 if not ret:
-                    self.play = False
+                    self.playing = False
                     return
 
             elif event.key == K_p: # back key
@@ -327,7 +353,7 @@ class Game:
             #
 
 
-    def move_player(self, key, only_once=False):
+    def move_player(self, key, continue_until_released=False):
         """
         A direction key has been pressed.
         Move (or try to move) the player in this direction
@@ -351,9 +377,9 @@ class Game:
         # 'pushing'
         prev_status = status
 
-        # Keep the motion going until key is released
-        # unless asked to make only one move
-        stop_next_tile = only_once
+        # Move only one tile away, unless asked keep the motion going until key 
+        # is released
+        stop_next_tile = not continue_until_released
 
         # save one keydown event to have smooth turning
         save_event = None
