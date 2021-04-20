@@ -60,7 +60,7 @@ class Level:
                     level_row[-1] = S.GROUND
                     self.player_position = (x,y)
 
-                elif block == S.PLAYER_ON_GOAL:
+                elif block == S.PLAYER_ON_TARGET:
                     level_row[-1] = S.TARGET
                     self.player_position = (x,y)
 
@@ -470,6 +470,13 @@ class Level:
 
     def has_cancelable(self):
         return self.state_stack != []
+
+
+    def has_win(self):
+        for b in self.boxes:
+            if not self.is_target(b):
+                return False
+        return True
 
 
     def render(self, window, textures, highlights):

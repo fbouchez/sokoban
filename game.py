@@ -20,6 +20,13 @@ KEYDIR = {
         K_q: SOKOBAN.LEFT,
         K_d: SOKOBAN.RIGHT
 }
+DIRKEY = [
+        K_UP,
+        K_DOWN,
+        K_LEFT,
+        K_RIGHT
+        ]
+
 
 class Game:
     def __init__(self, window, continueGame=True):
@@ -40,8 +47,7 @@ class Game:
             self.index_level = 0
 
         self.interface = Interface(self)
-        self.load_level(nextLevel=True)
-        self.play = True
+        self.play = False
         self.visual = False
         self.has_changed = False
         self.selected_position = None
@@ -90,10 +96,16 @@ class Game:
         self.level.load(self.index_level)
 
         if not self.level.loaded:
-            self.play = False
-            return
+            print ("Plus de niveau disponible")
+            ## Cannot use interface since it is only when a level is loaded
+            self.interface.display_info("Plus de niveau disponible", error=True)
+            self.interface.txtInfo.render(self.window)
+            self.wait_key(update=False)
+            return False
 
         assert(self.interface)
+
+        self.play = True
 
         self.interface.set_level(
                 self.level,
@@ -108,13 +120,14 @@ class Game:
         else:
             self.player = Player(self, self.level)
 
+        return True
+
     def start(self):
-        if not self.level.loaded:
-            print ("Plus de niveaux disponibles")
-            ## Cannot use interface since it is only when a level is loaded
-            # self.interface.display_info("Ne peut charger de niveau", error=True)
-            # self.interface.render()
-            # pygame.display.flip()
+        """
+        main loop of  the game
+        """
+        ret = self.load_level(nextLevel=True)
+        if not ret:
             return
 
         self.clock = pygame.time.Clock()
@@ -159,7 +172,11 @@ class Game:
             return
 
         for d in path:
-            self.player.move(d)
+            # self.player.move(d)
+            # simulate key presses
+            key = DIRKEY[d]
+            self.move_player(key, only_once=True)
+
             self.update_screen()
             pygame.time.wait(SOKOBAN.MOVE_DELAY)
 
@@ -176,20 +193,16 @@ class Game:
             oppd = SOKOBAN.OPPOSITE[d]
 
             if not skip_last or not last:
-                ret = self.player.move(oppd)
-                assert (ret) # should have changed the level
+                key = DIRKEY[oppd]
+                self.move_player(key, only_once=True)
 
             self.update_screen()
-            if fast:
-                pygame.time.wait(SOKOBAN.FLASH_DELAY)
-            else:
-                pygame.time.wait(SOKOBAN.SOLVE_DELAY)
 
             # new box position
             box = self.level.side_box(box, oppd)
             verbose ("New box position", box)
 
-        if self.has_win():
+        if self.level.has_win():
             self.level_win()
 
 
@@ -240,11 +253,14 @@ class Game:
             elif event.key in KEYDIR.keys():
                 self.move_player(event.key)
 
-            elif event.key == K_k: # cheat key :-)
-                    self.load_level(nextLevel=True)
+            elif event.key == K_n: # cheat key :-)
+                ret = self.load_level(nextLevel=True)
+                if not ret:
+                    self.play = False
+                    return
 
             elif event.key == K_p: # back key
-                    self.load_level(prevLevel=True)
+                self.load_level(prevLevel=True)
 
             elif event.key == K_r:
                 # Restart current level
@@ -267,11 +283,11 @@ class Game:
             # "Test" key
             elif event.key == K_t:
                 pass
-                path = self.level.move_one_box((8, 3), (4, 3))
-                if not path:
-                    self.flash_screen((8,3))
-                else:
-                    self.animate_move_boxes(path)
+                # path = self.level.move_one_box((8, 3), (4, 3))
+                # if not path:
+                    # self.flash_screen((8,3))
+                # else:
+                    # self.animate_move_boxes(path)
 
             # "all box solve" key
             elif event.key == K_a:
@@ -311,7 +327,7 @@ class Game:
             #
 
 
-    def move_player(self, key):
+    def move_player(self, key, only_once=False):
         """
         A direction key has been pressed.
         Move (or try to move) the player in this direction
@@ -336,7 +352,8 @@ class Game:
         prev_status = status
 
         # Keep the motion going until key is released
-        stop = False
+        # unless asked to make only one move
+        stop_next_tile = only_once
 
         # save one keydown event to have smooth turning
         save_event = None
@@ -344,23 +361,27 @@ class Game:
             # slows loop to target FPS
             t = self.clock.tick(SOKOBAN.TARGET_FPS)
 
-            if not stop:
-                # discard all events but:
-                # quit
-                # release of direction key
-                # press of a new key (save it for later)
-                while True:
-                    event = pygame.event.poll()
-                    if event.type == NOEVENT: break
-                    if event.type == QUIT:
-                        pygame.quit()
-                        sys.exit(0)
-                    if event.type == KEYDOWN:
-                        save_event = event
-                    elif event.type == KEYUP \
-                    and event.key == key:
+            # if not stop_next_tile:
+            # discard all events but:
+            # quit
+            # release of direction key
+            # press of a new key (save it for later)
+            while not stop_next_tile:
+                event = pygame.event.poll()
+                if event.type == NOEVENT: break
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit(0)
+                if event.type == KEYDOWN:
+                    save_event = event
+                elif event.type == KEYUP:
+                    if save_event is not None and event.key == save_event.key:
+                        # the key saved is not pushed anymore
+                        save_event = None
+
+                    if event.key == key:
                         # keep moving but stop at next tile
-                        stop = True
+                        stop_next_tile = True
                         if save_event is not None:
                             # put back the pressed key so it will be processed 
                             # by the main loop as soon as this function returns
@@ -373,7 +394,7 @@ class Game:
                 if prev_status == S.ST_PUSHING:
                     # check if winable state
                     # before continuing
-                    if self.has_win():
+                    if self.level.has_win():
                         self.level_win()
                         return
 
@@ -384,7 +405,7 @@ class Game:
                     self.interface.set_lost_state(lost)
 
                 # key not pressed anymore and finished arriving on the tile
-                if stop:
+                if stop_next_tile:
                     self.player.stop_move()
                     break
 
@@ -487,18 +508,6 @@ class Game:
 
         if flip:
             pygame.display.flip()
-
-
-    def has_win(self):
-        nb_missing_target = 0
-
-        for y in range(self.level.map_height):
-            for x in range(self.level.map_width):
-                if self.level.is_target((x,y)):
-                    if not self.level.has_box((x,y)):
-                        nb_missing_target += 1
-
-        return nb_missing_target == 0
 
     def level_win(self):
         self.scores.save()

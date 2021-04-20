@@ -39,7 +39,7 @@ TARGET_FILLED   = 4
 PLAYER          = 5
 AIR             = 6
 GROUND          = 7
-PLAYER_ON_GOAL  = 8
+PLAYER_ON_TARGET= 8
 TARGETOVER      = 9 # just for the texture overlay
 
 SYMBOLS_ORIGINALS = ['','#','$','.','*','@',' ','','+']

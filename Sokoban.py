@@ -81,6 +81,12 @@ def main():
 
     pygame.quit()
 
+# a function to ease enter into debug mode using C-c "a la gdb"
+def debug_signal_handler(signal, frame):
+    import pdb
+    pdb.set_trace()
 
 if __name__ == "__main__":
+    import signal
+    signal.signal(signal.SIGINT, debug_signal_handler)
     main()
