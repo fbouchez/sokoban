@@ -144,7 +144,7 @@ class Interface:
         self.is_lost=False
         self.has_info=False
         self.is_solving=False
-        self.load_texts()
+        self.load_assets()
 
     def set_level(self, level, level_num, title=None):
         self.reset()
@@ -163,7 +163,7 @@ class Interface:
         self.has_info=False
         self.is_solving=False
 
-    def load_texts(self):
+    def load_assets(self):
 
         self.txtLevel = Text("Niveau 1",
                 self.font_messages, SOKOBAN.BLUE, SOKOBAN.ALEFT, SOKOBAN.ATOP,
@@ -203,11 +203,7 @@ class Interface:
                 callback=None)
         self.txtWin.set_pos(y=80)
 
-
-
         self.ymessages = SOKOBAN.WINDOW_HEIGHT - 80
-
-
 
         y  = self.txtWin.pos[1]
         y += self.txtWin.surf.get_height()+40
@@ -295,6 +291,32 @@ class Interface:
         self.display_info(message, error)
 
 
+    def flash_screen (self, pos=None, color=SOKOBAN.RED):
+        """
+        Briefly flash a given tile at 'pos', or the whole board.
+        """
+        if pos is None:
+            surf = pygame.Surface((self.game.board.get_width(),
+                                   self.game.board.get_height()))
+            surf.set_alpha(50)
+            surf.fill(color)
+
+        for x in range(4):
+            if pos is not None:
+                self.game.level.highlight([pos], SOKOBAN.HERROR)
+                self.game.update_screen()
+            else:
+                self.game.window.blit(surf, self.game.origin_board)
+                pygame.display.flip()
+            pygame.time.wait(SOKOBAN.FLASH_DELAY)
+
+            if pos is not None:
+                self.game.level.reset_highlight()
+            self.game.update_screen()
+            pygame.time.wait(SOKOBAN.FLASH_DELAY)
+
+
+
     def render(self, window, level_num, level):
 
         self.txtLevel.render(window)
@@ -311,4 +333,3 @@ class Interface:
             self.txtInfo.render(window)
         if self.is_solving:
             self.txtResol.render(window)
-

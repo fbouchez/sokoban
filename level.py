@@ -496,12 +496,6 @@ class Level:
                     if self.is_target((x,y)):
                         window.blit(textures[S.TARGETOVER], pos)
 
-                # else:
-                    # pygame.draw.rect(window, S.WHITE, (pos[0], pos[1], S.SPRITESIZE, S.SPRITESIZE))
-
-
                 h = self.mhighlight[y][x]
                 if h:
                     window.blit(highlights[h], pos)
-
-

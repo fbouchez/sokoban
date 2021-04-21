@@ -155,8 +155,9 @@ class Game:
 
         # main loop
         while self.playing:
-            self.update_screen()
-            self.process_event(pygame.event.wait())
+            ret = self.process_event(pygame.event.wait())
+            if ret:
+                self.update_screen()
 
             # new frame: store number of milliseconds passed since previous call
             t = self.clock.tick()
@@ -208,6 +209,9 @@ class Game:
 
 
     def animate_move_boxes(self, path, skip_last=False, fast=True):
+        """
+        Moving a box automatically, following 'path' movements
+        """
         self.level.invalidate()
 
         for last,(box,d) in islast(path):
@@ -215,9 +219,11 @@ class Game:
             verbose ("now path is push", box, "from", SOKOBAN.DNAMES[d])
             pos = self.level.side_box(box, d)
 
+            # move character to the side of the box
             self.animate_move_to(pos)
             oppd = SOKOBAN.OPPOSITE[d]
 
+            # now push dthe box
             if not skip_last or not last:
                 key = DIRKEY[oppd]
                 self.move_player(key)
@@ -226,30 +232,10 @@ class Game:
 
             # new box position
             box = self.level.side_box(box, oppd)
-            verbose ("New box position", box)
 
+        # check if last push triggered a win condition
         if self.level.has_win():
             self.level_win()
-
-
-    def flash_screen (self, pos=None, color=SOKOBAN.RED):
-        if pos is None:
-            surf = pygame.Surface((self.board.get_width(), self.board.get_height()))
-            surf.set_alpha(50)
-            surf.fill(color)
-
-        for x in range(4):
-            if pos is not None:
-                self.level.highlight([pos], SOKOBAN.HERROR)
-            else:
-                self.window.blit(surf, self.origin_board)
-            pygame.display.flip()
-            pygame.time.wait(SOKOBAN.FLASH_DELAY)
-
-            if pos is not None:
-                self.level.reset_highlight()
-            self.update_screen()
-            pygame.time.wait(SOKOBAN.FLASH_DELAY)
 
 
     def cancel_selected(self):
@@ -274,7 +260,7 @@ class Game:
             if event.key == K_ESCAPE:
                 # Quit game
                 self.playing = False
-                return
+                return False
 
             elif event.key in KEYDIR.keys():
                 self.move_player(event.key, continue_until_released=True)
@@ -283,7 +269,7 @@ class Game:
                 ret = self.load_level(nextLevel=True)
                 if not ret:
                     self.playing = False
-                    return
+                    return  False
 
             elif event.key == K_p: # back key
                 self.load_level(prevLevel=True)
@@ -324,7 +310,7 @@ class Game:
                             message=message,
                             error=True
                             )
-                    self.flash_screen()
+                    self.interface.flash_screen()
                     self.update_screen()
                     self.wait_key()
 
@@ -332,7 +318,7 @@ class Game:
                     self.interface.set_solving(True,
                             message=message,
                             error=False)
-                    self.flash_screen(color=SOKOBAN.GREEN)
+                    self.interface.flash_screen(color=SOKOBAN.GREEN)
                     self.wait_key()
                     self.animate_move_boxes(path, skip_last=True, fast=False)
 
@@ -347,10 +333,10 @@ class Game:
 
         elif event.type == MOUSEMOTION:
             self.interface.mouse_pos = event.pos
-        # else:
-            # print ("Unknown event:", event)
-            #
-            #
+            # do not update screen after this event
+            return False
+
+        return True
 
 
     def move_player(self, key, continue_until_released=False):
@@ -464,7 +450,8 @@ class Game:
                     )
 
                 if not path:
-                    self.flash_screen(selpos)
+                    print ('flashing')
+                    self.interface.flash_screen(selpos)
                 else:
                     self.animate_move_boxes(path)
 
@@ -510,8 +497,6 @@ class Game:
         return False
 
     def update_screen(self, flip=True):
-        # if not self.level.loaded: return
-
         # clear screen
         self.window.fill(SOKOBAN.WHITE)
         self.board.fill(SOKOBAN.WHITE)
