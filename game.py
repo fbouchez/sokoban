@@ -83,25 +83,27 @@ class Game:
         }
         }
 
-        def surfhigh (color, alpha):
-            surf = pygame.Surface((SOKOBAN.SPRITESIZE, SOKOBAN.SPRITESIZE))
+        def surfhigh (size, color, alpha):
+            surf = pygame.Surface((size, size))
             surf.set_alpha(alpha)
             surf.fill(color) # green highlight
             return surf
 
         # small surfaces to draw attention to a particular tile of the board
         # e.g., to highlight a tile
-        surfAtt  = surfhigh((0,255,0),50) # green highlight, for attainable tiles
-        surfSucc = surfhigh((0,0,255),50) # blue highlight,  to show successors of boxes
-        surfSelect= surfhigh((255,255,0),200) # yellow highlight, to show selection
-        surfError = surfhigh((255,0,0),200) # red highlight, in case of an error
+        surfAtt  = lambda s: surfhigh(s,(0,255,0),50) # green highlight, for attainable tiles
+        surfSucc = lambda s: surfhigh(s,(0,0,255),50) # blue highlight,  to show successors of boxes
+        surfSelect= lambda s: surfhigh(s,(255,255,0),200) # yellow highlight, to show selection
+        surfError = lambda s: surfhigh(s,(255,0,0),200) # red highlight, in case of an error
 
-        self.highlights = {
-                SOKOBAN.HATT:   surfAtt,
-                SOKOBAN.HSUCC:  surfSucc,
-                SOKOBAN.HSELECT:surfSelect,
-                SOKOBAN.HERROR :surfError,
-                }
+        self.highlights = {}
+        for s in SOKOBAN.SPRITESIZES:
+            self.highlights[s] = {
+                    SOKOBAN.HATT:   surfAtt(s),
+                    SOKOBAN.HSUCC:  surfSucc(s),
+                    SOKOBAN.HSELECT:surfSelect(s),
+                    SOKOBAN.HERROR :surfError(s),
+                    }
 
     def load_level(self, nextLevel=False, prevLevel=False):
         """
@@ -157,10 +159,10 @@ class Game:
                 max_width / self.level.width
                 )
 
-        print ('could use sprite size', max_sprite_size)
+        # print ('could use sprite size', max_sprite_size)
         sp = int(max_sprite_size / 4)*4
         sp = max(min(sp, 64), 16)
-        print ('will use sprite size', sp)
+        verbose ('will use sprite size', sp)
         SOKOBAN.SPRITESIZE = sp
 
         # space to draw the level
@@ -508,7 +510,6 @@ class Game:
                     )
 
                 if not path:
-                    print ('flashing')
                     self.interface.flash_screen(selpos)
                 else:
                     self.animate_move_boxes(path)

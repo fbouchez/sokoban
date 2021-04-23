@@ -165,6 +165,9 @@ class Level:
             if self.map[y][x] == S.AIR:
                 self.map[y][x] = S.GROUND
 
+        # reset previous analyses
+        self.dij = None
+
         # highlight on some tiles
         self.mhighlight = [[S.HOFF for x in range(self.width)] for y in range(self.height)]
 
@@ -495,4 +498,4 @@ class Level:
 
                 h = self.mhighlight[y][x]
                 if h:
-                    window.blit(highlights[h], pos)
+                    window.blit(highlights[S.SPRITESIZE][h], pos)
