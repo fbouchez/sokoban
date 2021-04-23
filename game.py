@@ -64,11 +64,14 @@ class Game:
         self.visual = False
         self.has_changed = False
         self.selected_position = None
+        self.origin_board = (0,0)
 
     def load_textures(self):
         ground = pygame.image.load('assets/images/stoneCenter.png').convert_alpha()
 
         self.textures = {
+                SOKOBAN.ORIG_SPRITESIZE:
+        {
             SOKOBAN.WALL: pygame.image.load('assets/images/wall.png').convert_alpha(),
             SOKOBAN.BOX: pygame.image.load('assets/images/box.png').convert_alpha(),
             SOKOBAN.TARGET: ground,
@@ -77,6 +80,7 @@ class Game:
             SOKOBAN.TARGET_FILLED: pygame.image.load('assets/images/box_correct.png').convert_alpha(),
             SOKOBAN.PLAYER: pygame.image.load('assets/images/player_sprites.png').convert_alpha(),
             SOKOBAN.GROUND: ground
+        }
         }
 
         def surfhigh (color, alpha):
@@ -128,15 +132,54 @@ class Game:
                 self.index_level,
                 self.level.title)
 
-        # space to draw the level
-        self.board = pygame.Surface((self.level.width, self.level.height))
+        self.create_board()
+
+
         if self.player:
             self.interface.level = self.level
             self.player.level = self.level
         else:
             self.player = Player(self, self.level)
 
+        # scales textures to current spritesize if necessary
+        self.update_textures()
+        self.player.update_textures()
+
         return True
+
+    def create_board(self):
+        # determine size of level on screen
+        max_height = SOKOBAN.WINDOW_HEIGHT - 80
+        max_width  = SOKOBAN.WINDOW_WIDTH - 2*BORDER
+
+        max_sprite_size = min(
+                max_height / self.level.height,
+                max_width / self.level.width
+                )
+
+        print ('could use sprite size', max_sprite_size)
+        sp = int(max_sprite_size / 4)*4
+        sp = max(min(sp, 64), 16)
+        print ('will use sprite size', sp)
+        SOKOBAN.SPRITESIZE = sp
+
+        # space to draw the level
+        self.board = pygame.Surface((
+            self.level.width * SOKOBAN.SPRITESIZE,
+            self.level.height * SOKOBAN.SPRITESIZE))
+
+
+    def update_textures(self):
+        if SOKOBAN.SPRITESIZE not in self.textures:
+            sp = SOKOBAN.SPRITESIZE
+            self.textures[sp] = {}
+            for key, texture in self.textures[SOKOBAN.ORIG_SPRITESIZE].items():
+                sc = pygame.transform.scale(texture, (sp, sp))
+                self.textures[sp][key] = sc
+
+
+
+
 
     def start(self):
         """
@@ -336,6 +379,21 @@ class Game:
             # do not update screen after this event
             return False
 
+        elif event.type == VIDEORESIZE:
+            w,h = event.dict['size']
+            SOKOBAN.WINDOW_WIDTH = w
+            SOKOBAN.WINDOW_HEIGHT = h
+
+            # need to recreate the window although the doc says it should be 
+            # automatically updated
+            self.window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT),RESIZABLE)
+            self.create_board()
+            self.update_textures()
+            self.player.update_textures()
+            self.interface.update_positions()
+
+
+
         return True
 
 
@@ -501,8 +559,8 @@ class Game:
         self.window.fill(SOKOBAN.WHITE)
         self.board.fill(SOKOBAN.WHITE)
 
-        self.level.render(self.board, self.textures, self.highlights)
-        self.player.render(self.board, self.textures)
+        self.level.render(self.board, self.textures[SOKOBAN.SPRITESIZE], self.highlights)
+        self.player.render(self.board, self.textures[SOKOBAN.ORIG_SPRITESIZE])
 
         if self.has_changed:
             self.has_changed=False

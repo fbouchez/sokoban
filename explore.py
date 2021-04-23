@@ -26,9 +26,9 @@ class Dijkstra:
         fifo = queue.Queue()
         fifo.put (source)
 
-        mark =  [[False for x in range(self.level.map_width)] for y in range(self.level.map_height)]
-        pred =  [[None for x in range(self.level.map_width)] for y in range(self.level.map_height)]
-        dist =  [[-1 for x in range(self.level.map_width)] for y in range(self.level.map_height)]
+        mark =  [[False for x in range(self.level.width)] for y in range(self.level.height)]
+        pred =  [[None for x in range(self.level.width)] for y in range(self.level.height)]
+        dist =  [[-1 for x in range(self.level.width)] for y in range(self.level.height)]
         mark[init_y][init_x] = True
 
         dist[init_y][init_x] = 0
@@ -107,8 +107,8 @@ class BoxSolution:
             assert (len(boxlist) == 1)
         else:
             # target on most on lower right corner
-            for y in reversed(range(self.level.map_height)):
-                for x in reversed(range(self.level.map_width)):
+            for y in reversed(range(self.level.height)):
+                for x in reversed(range(self.level.width)):
                     if self.level.is_target((x,y)):
                         self.target = (x,y)
                         return

@@ -16,10 +16,11 @@ class Player:
         self.anim_frame_num=0
 
     def load_textures(self):
-        sheet = self.game.textures[S.PLAYER]
-        self.textures = []
+        sheet = self.game.textures[S.ORIG_SPRITESIZE][S.PLAYER]
+        st = []
+        self.textures = {S.ORIG_SPRITESIZE: st}
         for d in range(S.NUMDIRS):
-            self.textures.append([])
+            st.append([])
 
         for yoffset, direction in enumerate([
             S.DOWN,
@@ -28,12 +29,26 @@ class Player:
             S.UP
             ]):
             for xoffset in range(S.SPRITE_PLAYER_NUM):
-                self.textures[direction].append(
+                st[direction].append(
                         sheet.subsurface((
-                            xoffset*S.SPRITESIZE,
-                            yoffset*S.SPRITESIZE,
-                            S.SPRITESIZE,
-                            S.SPRITESIZE)))
+                            xoffset*S.ORIG_SPRITESIZE,
+                            yoffset*S.ORIG_SPRITESIZE,
+                            S.ORIG_SPRITESIZE,
+                            S.ORIG_SPRITESIZE)))
+
+
+    def update_textures(self):
+        if SOKOBAN.SPRITESIZE not in self.textures:
+            sp = SOKOBAN.SPRITESIZE
+            self.textures[sp] = []
+            for direct in self.textures[SOKOBAN.ORIG_SPRITESIZE]:
+                l = []
+                self.textures[sp].append(l)
+                for texture in direct:
+                    sc = pygame.transform.scale(texture, (sp, sp))
+                    l.append(sc)
+
+
 
     def start_move(self, direction):
         self.direction = direction
@@ -103,8 +118,8 @@ class Player:
 
 
             if self.status == S.ST_PUSHING:
-                window.blit(self.game.textures[S.BOX], 
+                window.blit(self.game.textures[S.SPRITESIZE][S.BOX], 
                         (xpos+mbx*S.SPRITESIZE, ypos+mby*S.SPRITESIZE))
 
-        window.blit(self.textures[self.direction][self.sprite_idx], (xpos, ypos))
+        window.blit(self.textures[S.SPRITESIZE][self.direction][self.sprite_idx], (xpos, ypos))
 

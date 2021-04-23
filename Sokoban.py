@@ -41,7 +41,7 @@ def main():
     # now continuing is handled via keyup instead of repetition
     # pygame.key.set_repeat(100, 100)
     pygame.display.set_caption("Sokoban Game")
-    window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT))
+    window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT),RESIZABLE)
 
     # Game menu
     menu = Menu()
@@ -73,6 +73,14 @@ def main():
                     break
                 else:
                     raise ValueError("Click problem on menu")
+        elif event.type == VIDEORESIZE:
+            w,h = event.dict['size']
+            SOKOBAN.WINDOW_WIDTH = w
+            SOKOBAN.WINDOW_HEIGHT = h
+            window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT),RESIZABLE)
+
+        # else:
+            # print('uncatched event:', event)
 
         # Redraws menu, as a game might have been played
         window.fill(SOKOBAN.WHITE)

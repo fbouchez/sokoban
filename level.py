@@ -67,8 +67,8 @@ class Level:
 
             self.map.append(level_row)
 
-        self.map_width =  max_width
-        self.map_height = height
+        self.width =  max_width
+        self.height = height
 
         for y in range(height):
             while len(self.map[y]) < max_width:
@@ -77,12 +77,12 @@ class Level:
 
 
         # map of boxes
-        self.mboxes = [[False for x in range(self.map_width)] for y in range(self.map_height)]
+        self.mboxes = [[False for x in range(self.width)] for y in range(self.height)]
         for bx,by in self.boxes:
             self.mboxes[by][bx] = True
 
 
-        verbose ("Level size: ", self.map_width, "x", self.map_height)
+        verbose ("Level size: ", self.width, "x", self.height)
         verbose (self.map)
         verbose (self.mboxes)
         verbose (self.boxes)
@@ -159,9 +159,6 @@ class Level:
             if not ret:
                 return False
 
-        self.width = self.map_width * S.SPRITESIZE
-        self.height = self.map_height * S.SPRITESIZE
-
         dij = Dijkstra(self)
         att = dij.attainable(self.player_position, boxes_block=False)
         for x,y in att:
@@ -169,7 +166,7 @@ class Level:
                 self.map[y][x] = S.GROUND
 
         # highlight on some tiles
-        self.mhighlight = [[S.HOFF for x in range(self.map_width)] for y in range(self.map_height)]
+        self.mhighlight = [[S.HOFF for x in range(self.width)] for y in range(self.height)]
 
         # no previous move to cancel
         self.state_stack = []
@@ -178,8 +175,8 @@ class Level:
         return True
 
     def reset_highlight (self):
-        for y in range(self.map_height):
-            for x in range(self.map_width):
+        for y in range(self.height):
+            for x in range(self.width):
                 self.mhighlight[y][x] = S.HOFF
 
 
@@ -295,8 +292,8 @@ class Level:
         xx2 = x+2*move_x
         yy2 = y+2*move_y
 
-        if xx < 0 or xx >= self.map_width or\
-           yy < 0 or yy >= self.map_height:
+        if xx < 0 or xx >= self.width or\
+           yy < 0 or yy >= self.height:
                return
 
         if self.is_empty((xx,yy)):
@@ -449,8 +446,8 @@ class Level:
 
     def update_box_positions(self):
         self.boxes = []
-        for y in range(self.map_height):
-            for x in range(self.map_width):
+        for y in range(self.height):
+            for x in range(self.width):
                 if self.mboxes[y][x]:
                     self.boxes.append((x,y))
 
@@ -481,8 +478,8 @@ class Level:
 
     def render(self, window, textures, highlights):
 
-        for y in range(self.map_height):
-            for x in range(self.map_width):
+        for y in range(self.height):
+            for x in range(self.width):
                 pos = (x * S.SPRITESIZE, y * S.SPRITESIZE)
 
                 if self.mboxes[y][x]:

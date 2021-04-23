@@ -118,6 +118,9 @@ class Menu:
                 self.txtQuit
                 ]
 
+
+
+
     def click(self, pos_click):
         # check if some text has been clicked
         for t in self.clickableTexts:
@@ -229,14 +232,20 @@ class Interface:
 
 
         self.clickableTexts = [
-                # self.txtLevel,
                 self.txtCancel,
                 self.txtReset,
                 self.txtVisu,
                 self.txtHelp,
-                # self.txtMoves,
-                # self.txtPress,
-                # self.txtLost
+                ]
+
+        self.all_texts = self.clickableTexts + \
+                [
+                self.txtLevel,
+                self.txtMoves,
+                self.txtPress,
+                self.txtInfo,
+                self.txtResol,
+                self.txtLost
                 ]
 
     def click(self, pos_click, level):
@@ -315,6 +324,13 @@ class Interface:
             self.game.update_screen()
             pygame.time.wait(SOKOBAN.FLASH_DELAY)
 
+
+    def update_positions(self):
+        """
+        Update all alignments after a window resizing
+        """
+        for s in self.all_texts:
+            s.update()
 
 
     def render(self, window, level_num, level):
