@@ -4,11 +4,12 @@ import constants as SOKOBAN
 BORDER = 10
 
 class Text:
-    def __init__(self,text,font,color,xalign,yalign,x=0,y=0,callback=None):
+    def __init__(self,text,font,color,xalign,yalign,x=0,y=0,yfun=None,callback=None):
         self.font  = font
         self.color = color
         self.xalign = xalign
         self.yalign = yalign
+        self.yfun = yfun
         self.callback = callback
         self.pos  = (x,y)
         self.surf = None
@@ -42,7 +43,10 @@ class Text:
         elif self.yalign == SOKOBAN.ABOTTOM:
             ypos= SOKOBAN.WINDOW_HEIGHT - self.surf.get_height() - BORDER
         elif self.yalign == SOKOBAN.ACUSTOM:
-            ypos=self.pos[1]
+            if self.yfun is None:
+                ypos=self.pos[1]
+            else:
+                ypos=self.yfun()
         else:
             raise ValueError("Horizontal alignment")
 
@@ -204,30 +208,29 @@ class Interface:
         self.txtWin = Text ("Félicitations, niveau 1 terminé",
                 self.font_win, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 callback=None)
-        self.txtWin.set_pos(y=80)
+        self.txtWin.set_pos(below=self.txtReset)
 
-        self.ymessages = SOKOBAN.WINDOW_HEIGHT - 80
+        self.ymessages=210
 
-        y  = self.txtWin.pos[1]
-        y += self.txtWin.surf.get_height()+40
         self.txtPress = Text ("(appuyez sur une touche pour continuer)",
                 self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
-                y=y, callback=None)
+                callback=None)
+        self.txtPress.set_pos(below=self.txtWin)
 
         self.txtLost = Text ("Résolution impossible (certaines boîtes sont définitivement coincées)",
                 self.font_messages, SOKOBAN.RED, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
-                y=self.ymessages,
+                yfun=self.compute_ymessages,
                 callback=None)
 
         self.txtResol = Text ("Résolution en cours (Esc pour annuler)",
                 self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
-                y=self.ymessages - 30,
+                yfun=lambda: self.compute_ymessages() - 30,
                 callback=None)
 
 
         self.txtInfo = Text (" ",
                 self.font_messages, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
-                y=self.ymessages,
+                yfun=self.compute_ymessages,
                 callback=None)
 
 
@@ -247,6 +250,9 @@ class Interface:
                 self.txtResol,
                 self.txtLost
                 ]
+
+    def compute_ymessages(self):
+        return SOKOBAN.WINDOW_HEIGHT - 80
 
     def click(self, pos_click, level):
         # check if some text has been clicked

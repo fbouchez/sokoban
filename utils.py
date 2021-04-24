@@ -27,10 +27,11 @@ def tupleit(t):
 def opposite(d):
     return SOKOBAN.OPPOSITE[d]
 
-def in_dir(pos, d):
+def in_dir(pos, d, dist=1):
     mx,my = SOKOBAN.DIRS[d]
     x,y=pos
-    return x+mx,y+my
+    return x+mx*dist,y+my*dist
+
 
 def in_opp_dir(pos, d):
     return in_dir(pos, opposite(d))

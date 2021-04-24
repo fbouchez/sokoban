@@ -95,6 +95,56 @@ class Dijkstra:
         return reversed(path)
 
 
+class Deadlocks:
+    """
+    Searches for deadlock tiles, i.e., tiles where a box cannot
+    reach any target anymore.
+    """
+    def __init__(self, level):
+        self.level = level
+
+    def compute(self):
+
+        # will mark as "reverse-attainable" tiles
+        # consider all tiles as dead, then unmark them if they are
+        # reversed-attainable
+        dead =  [[True for x in range(self.level.width)] for y in range(self.level.height)]
+
+        # lifo would just do also fine here
+        fifo = queue.Queue()
+        for t in self.level.targets:
+            fifo.put(t)
+            x,y = t
+            dead[y][x] = False
+
+        while not fifo.empty():
+            t = fifo.get()
+
+            # check all neighbours
+            for d in range(SOKOBAN.NUMDIRS):
+                n = in_dir(t,d)
+                x,y=n
+                if self.level.is_wall(n): continue
+                if not dead[y][x]: continue # already visited
+                n2 = in_dir(t,d,dist=2)
+                if self.level.is_wall(n2): continue
+
+                # otherwise, possible to push a box from n using n2
+                fifo.put(n)
+                dead[y][x] = False
+
+        # now unmarked tiles are deadlocks
+        self.dead = dead
+        return dead
+
+
+
+
+
+
+
+
+
 class BoxSolution:
     def __init__(self, level, boxlist, dest=None):
         self.level = level
@@ -310,11 +360,20 @@ class BoxSolution:
         _, sblist, _ = state
 
         hdist = 0
+        surf = self.level.width * self.level.height
         for box in sblist:
             m =self.manhattan(box,self.target)
+
             # hdist += m*m  ## good for open levels
-            hdist += m
+            # hdist += m
             # hdist += int(sqrt(m))
+
+            # Trying special for labyrinth-like levels
+            #
+            heur = surf * m
+            heur -= m*(m+1)//2
+            hdist += heur
+
         return hdist
 
 

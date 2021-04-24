@@ -34,6 +34,7 @@ class Level:
         self.map = []
         max_width = 0
         self.boxes = []
+        self.targets = []
         height = len(rows)
 
         for y in range(len(rows)):
@@ -52,9 +53,13 @@ class Level:
                     level_row[-1] = S.GROUND
                     self.boxes.append((x,y))
 
+                elif block == S.TARGET:
+                    self.targets.append((x,y))
+
                 elif block == S.TARGET_FILLED:
                     level_row[-1] = S.TARGET
                     self.boxes.append((x,y))
+                    self.targets.append((x,y))
 
                 elif block == S.PLAYER:
                     level_row[-1] = S.GROUND
@@ -62,6 +67,7 @@ class Level:
 
                 elif block == S.PLAYER_ON_TARGET:
                     level_row[-1] = S.TARGET
+                    self.targets.append((x,y))
                     self.player_position = (x,y)
 
 
@@ -168,6 +174,9 @@ class Level:
         # reset previous analyses
         self.dij = None
 
+        # compute deadlocks
+        self.compute_dead()
+
         # highlight on some tiles
         self.mhighlight = [[S.HOFF for x in range(self.width)] for y in range(self.height)]
 
@@ -199,12 +208,17 @@ class Level:
         x,y = pos
         return self.map[y][x] == S.WALL
 
-
+    def is_floor (self, pos):
+        x,y = pos
+        return self.map[y][x] in [S.GROUND, S.TARGET, S.PLAYER]
 
     def is_empty (self, pos):
+        return self.is_floor(pos) and not self.has_box(pos)
+
+    def is_dead (self, pos):
         x,y = pos
-        return self.map[y][x] in [S.GROUND, S.TARGET, S.PLAYER] \
-                and not self.has_box(pos)
+        return self.dead[y][x]
+
 
 
     def lost_state(self, mboxes=None, boxlist=None):
@@ -228,6 +242,7 @@ class Level:
                 # print ("TESTISANOGEU")
 
             if self.is_target(box): continue
+            if self.is_dead(box): return True
             prev = False
             for d in S.AROUND:
                 # if disp:
@@ -397,16 +412,15 @@ class Level:
 
 
 
-    def path_to (self, pos):
-        targetx, targety = pos
+    def path_to (self, dest):
         self.compute_attainable()
-
-        if not self.dij.is_marked((targetx,targety)):
+        if not self.dij.is_marked(dest):
             verbose ("area is not attainable...")
             return None
 
-        path = self.dij.shortest_path(self.player_position, pos)
+        path = self.dij.shortest_path(self.player_position, dest)
         return path
+
 
     def solve_all_boxes(self):
         verbose ("Solving for all boxes!")
@@ -431,17 +445,23 @@ class Level:
         return bx+mx,by+my
 
 
+    def compute_dead(self):
+        self.dl = Deadlocks(self)
+        self.dead = self.dl.compute()
 
     def update_visual (self):
         self.reset_highlight()
 
         self.compute_attainable()
-
         self.highlight(self.dij.att_list, S.HATT)
 
         succ = self.compute_boxes_successors()
         self.highlight(succ, S.HSUCC)
 
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.dead[y][x] and self.is_floor((x,y)):
+                    self.highlight([(x,y)], S.HERROR)
 
     def invalidate(self):
         self.dij = None
