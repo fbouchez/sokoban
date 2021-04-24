@@ -139,8 +139,9 @@ class Game:
             # pygame.time.wait(200)
         self.footstep_idx = -1
 
-        self.sndPushing = pygame.mixer.Sound(fn('pushing-short.wav'))
-        self.sndPushing.set_volume(.08)
+        # self.sndPushing = pygame.mixer.Sound(fn('pushing-short.wav'))
+        self.sndPushing = pygame.mixer.Sound(fn('wood-friction.wav'))
+        # self.sndPushing.set_volume(.08)
         self.channelPushing = None
 
         self.sndWin = pygame.mixer.Sound(fn('jingle-win.wav'))
@@ -229,13 +230,15 @@ class Game:
         self.footstep_idx %= SOKOBAN.SND_FOOTSTEPNUM
         self.sndFootstep[self.footstep_idx].play()
 
+
     def sound_play_pushing(self):
         if not SOKOBAN.WITH_SOUND: return
         # check if previous sound is still playing
         if self.channelPushing is not None:
             if self.channelPushing.get_busy():
                 return
-        self.channelPushing = self.sndPushing.play()
+        self.channelPushing = self.sndPushing.play(0,1000)
+
 
     def sound_play_win(self):
         if not SOKOBAN.WITH_SOUND: return
@@ -323,6 +326,9 @@ class Game:
         """
         self.level.invalidate()
 
+        save_anim=SOKOBAN.MOVE_FRAMES
+        SOKOBAN.MOVE_FRAMES=4
+
         for last,(box,d) in islast(path):
 
             verbose ("now path is push", box, "from", SOKOBAN.DNAMES[d])
@@ -342,9 +348,12 @@ class Game:
             # new box position
             box = self.level.side_box(box, oppd)
 
+        SOKOBAN.MOVE_FRAMES=save_anim
+
         # check if last push triggered a win condition
         if self.level.has_win():
             self.level_win()
+
 
 
     def cancel_selected(self):
