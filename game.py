@@ -260,25 +260,26 @@ class Game:
         # code to test performance: compute the number of frames per second 
         # (FPS)
         self.clock = pygame.time.Clock()
-        q = Queue(maxsize=1000)
-        self.clock.tick()
-        total_time=0
-        fps_message="{fps:.2f} fps"
+
+        # q = Queue(maxsize=1000)
+        # self.clock.tick()
+        # total_time=0
+        # fps_message="{fps:.2f} fps"
 
         # main loop
         while self.playing:
             ret = self.process_event(pygame.event.wait())
             if ret:
                 self.update_screen()
+            self.clock.tick() # should be called once per frame
 
             # new frame: store number of milliseconds passed since previous call
-            t = self.clock.tick()
-            total_time += t
-            q.put(t)
-            if q.qsize() >= 60:
-                l = q.get()
-                total_time -= l
-                fps = 60 / total_time * 1000
+            # total_time += t
+            # q.put(t)
+            # if q.qsize() >= 60:
+                # l = q.get()
+                # total_time -= l
+                # fps = 60 / total_time * 1000
                 # print(fps_message.format(fps=fps), total_time, end="\r")
 
 

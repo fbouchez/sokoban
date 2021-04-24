@@ -43,8 +43,10 @@ def main():
 
     # Window creation
     pygame.init()
+
     # now continuing is handled via keyup instead of repetition
-    # pygame.key.set_repeat(100, 100)
+    # still keeping repetition to allow for fast cancels
+    pygame.key.set_repeat(100, 60)
     pygame.display.set_caption("Sokoban Game")
     window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT),RESIZABLE)
 
