@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 from pygame.locals import *
 import constants as SOKOBAN
 from level import *
@@ -53,6 +54,7 @@ class Game:
                 )
         self.scores = Scores(self)
         self.load_textures()
+        self.load_sounds()
 
         if continueGame:
             self.index_level = self.scores.last_level()
@@ -67,18 +69,21 @@ class Game:
         self.origin_board = (0,0)
 
     def load_textures(self):
-        ground = pygame.image.load('assets/images/stoneCenter.png').convert_alpha()
+        def fn(f):
+            return os.path.join('assets', 'images', f)
+
+        ground = pygame.image.load(fn('stoneCenter.png')).convert_alpha()
 
         self.textures = {
                 SOKOBAN.ORIG_SPRITESIZE:
         {
-            SOKOBAN.WALL: pygame.image.load('assets/images/wall.png').convert_alpha(),
-            SOKOBAN.BOX: pygame.image.load('assets/images/box.png').convert_alpha(),
+            SOKOBAN.WALL: pygame.image.load(fn('wall.png')).convert_alpha(),
+            SOKOBAN.BOX: pygame.image.load(fn('box.png')).convert_alpha(),
             SOKOBAN.TARGET: ground,
             # target overlay
-            SOKOBAN.TARGETOVER: pygame.image.load('assets/images/target.png').convert_alpha(),
-            SOKOBAN.TARGET_FILLED: pygame.image.load('assets/images/box_correct.png').convert_alpha(),
-            SOKOBAN.PLAYER: pygame.image.load('assets/images/player_sprites.png').convert_alpha(),
+            SOKOBAN.TARGETOVER: pygame.image.load(fn('target.png')).convert_alpha(),
+            SOKOBAN.TARGET_FILLED: pygame.image.load(fn('box_correct.png')).convert_alpha(),
+            SOKOBAN.PLAYER: pygame.image.load(fn('player_sprites.png')).convert_alpha(),
             SOKOBAN.GROUND: ground
         }
         }
@@ -104,6 +109,44 @@ class Game:
                     SOKOBAN.HSELECT:surfSelect(s),
                     SOKOBAN.HERROR :surfError(s),
                     }
+
+    def load_sounds(self):
+        if not SOKOBAN.WITH_SOUND: return
+        self.sndFootstep = []
+        # pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, buffersize
+        # pygame.mixer.pre_init(48000, 16, 2, 4096) #frequency, size, channels, buffersize
+        # pygame.init() #turn all of pygame on.
+
+        # filetest = 'assets/sounds/test.wav'
+        # test = pygame.mixer.Sound(filetest)
+        # for i in range(10):
+            # print('playing')
+            # test.play()
+            # pygame.time.wait(test.duration())
+            # pygame.time.wait(100)
+
+        def fn(f):
+            return os.path.join('assets', 'sounds', f)
+
+        filetemplate = 'footstep-dirt-{:02d}.wav'
+        for i in range (SOKOBAN.SND_FOOTSTEPNUM):
+            f = fn(filetemplate.format(i))
+            # print ('loading', fn)
+            snd = pygame.mixer.Sound(f)
+            snd.set_volume(.3)
+            self.sndFootstep.append(snd)
+            # f.play()
+            # pygame.time.wait(200)
+        self.footstep_idx = -1
+
+        self.sndPushing = pygame.mixer.Sound(fn('pushing-short.wav'))
+        self.sndPushing.set_volume(.05)
+        self.channelPushing = None
+
+        self.sndWin = pygame.mixer.Sound(fn('jingle-win.wav'))
+        self.sndWin.set_volume(.05)
+
+
 
     def load_level(self, nextLevel=False, prevLevel=False):
         """
@@ -180,6 +223,27 @@ class Game:
                 self.textures[sp][key] = sc
 
 
+    def sound_play_footstep(self):
+        if not SOKOBAN.WITH_SOUND: return
+        self.footstep_idx += 1
+        self.footstep_idx %= SOKOBAN.SND_FOOTSTEPNUM
+        self.sndFootstep[self.footstep_idx].play()
+
+    def sound_play_pushing(self):
+        if not SOKOBAN.WITH_SOUND: return
+        # check if previous sound is still playing
+        if self.channelPushing is not None:
+            if self.channelPushing.get_busy():
+                return
+        self.channelPushing = self.sndPushing.play()
+
+    def sound_play_win(self):
+        if not SOKOBAN.WITH_SOUND: return
+        self.sndWin.play()
+
+
+
+
 
 
 
@@ -212,7 +276,7 @@ class Game:
                 l = q.get()
                 total_time -= l
                 fps = 60 / total_time * 1000
-                print(fps_message.format(fps=fps), total_time, end="\r")
+                # print(fps_message.format(fps=fps), total_time, end="\r")
 
 
     def toggle_visualize(self):
@@ -427,6 +491,11 @@ class Game:
         # is released
         stop_next_tile = not continue_until_released
 
+        if status == SOKOBAN.ST_PUSHING:
+            self.sound_play_pushing()
+        else:
+            self.sound_play_footstep()
+
         # save one keydown event to have smooth turning
         save_event = None
         while True:
@@ -480,6 +549,12 @@ class Game:
                 if stop_next_tile:
                     self.player.stop_move()
                     break
+                # otherwise, continue, and play new sound
+                if status == SOKOBAN.ST_PUSHING:
+                    self.sound_play_pushing()
+                else:
+                    self.sound_play_footstep()
+
 
             prev_status = status
             status = self.player.status
@@ -581,6 +656,7 @@ class Game:
 
     def level_win(self):
         self.scores.save()
+        self.sound_play_win()
         self.update_screen(flip=False)
         self.interface.show_win(self.window, self.index_level)
         self.wait_key(update=False)

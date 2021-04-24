@@ -1,5 +1,5 @@
-# SINGLE_FILE = 'Original.txt'
-SINGLE_FILE = 'Tests.txt'
+SINGLE_FILE = 'Original.txt'
+# SINGLE_FILE = 'Tests.txt'
 # SINGLE_FILE = 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
 # SINGLE_FILE = 'Large Test Suite Sets/Grigr2001_100.xsb'
 # SINGLE_FILE = 'haikemono/Haikemono collection.txt'
@@ -19,6 +19,13 @@ SPRITESIZES  = [16,20,24,28,32,36,40,44,48,52,56,60,64]
 
 WINDOW_WIDTH  = 1024
 WINDOW_HEIGHT = 768
+
+
+# sound parameters
+WITH_SOUND = True
+SND_FOOTSTEPNUM = 10
+
+
 
 # Text alignment
 #vertical

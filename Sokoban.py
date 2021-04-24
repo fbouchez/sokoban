@@ -20,6 +20,8 @@ def parse_options():
     for o in sys.argv:
         if o == "-v" or o == "--verbose":
             set_verbose()
+        elif o == "--no-sound":
+            SOKOBAN.WITH_SOUND = False
 
 
 def new_game(window):
@@ -35,6 +37,9 @@ def main():
 
     parse_options()
     verbose("Verbose mode activated") # will only print if option was set
+
+    if SOKOBAN.WITH_SOUND:
+        pygame.mixer.pre_init(44100, 16, 2, 4096) # setup mixer to avoid sound lag
 
     # Window creation
     pygame.init()

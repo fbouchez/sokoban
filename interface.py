@@ -4,12 +4,14 @@ import constants as SOKOBAN
 BORDER = 10
 
 class Text:
-    def __init__(self,text,font,color,xalign,yalign,x=0,y=0,yfun=None,callback=None):
+    def __init__(self,text,font,color,xalign,yalign,x=0,y=0,below=None,above=None,yfun=None,callback=None):
         self.font  = font
         self.color = color
         self.xalign = xalign
         self.yalign = yalign
         self.yfun = yfun
+        self.below = below
+        self.above = above
         self.callback = callback
         self.pos  = (x,y)
         self.surf = None
@@ -43,22 +45,27 @@ class Text:
         elif self.yalign == SOKOBAN.ABOTTOM:
             ypos= SOKOBAN.WINDOW_HEIGHT - self.surf.get_height() - BORDER
         elif self.yalign == SOKOBAN.ACUSTOM:
-            if self.yfun is None:
-                ypos=self.pos[1]
-            else:
-                ypos=self.yfun()
+            self.set_pos(
+                    below=self.below,
+                    above=self.above,
+                    yfun=self.yfun)
+            _,ypos = self.pos
         else:
-            raise ValueError("Horizontal alignment")
+            raise ValueError("Horizontal alignment" + str(self.yalign))
 
         self.pos= (xpos,ypos)
 
-    def set_pos (self, x=None,y=None,below=None):
+    def set_pos (self, x=None,y=None,below=None,above=None,yfun=None):
         if x is None:
             x = self.pos[0]
         if y is None:
             y = self.pos[1]
         if below is not None:
             y = below.pos[1] + below.surf.get_height()+BORDER
+        elif above is not None:
+            y = above.pos[1] - self.surf.get_height()-BORDER
+        elif self.yfun is not None:
+            y = self.yfun()
 
         self.pos = (x,y)
 
@@ -101,18 +108,20 @@ class Menu:
         self.quit = True
 
     def load(self):
-        self.txtNew = Text("Nouvelle partie",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM, y=300,
-                callback=self.set_new_game
-                )
-
         self.txtCont = Text("Continuer",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM, y=370,
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.AMID,
                 callback=self.set_continue_game
                 )
 
+        self.txtNew = Text("Nouvelle partie",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                above=self.txtCont,
+                callback=self.set_new_game
+                )
+
         self.txtQuit = Text("Quitter partie",
-                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM, y=440,
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                below=self.txtCont,
                 callback=self.set_quit
                 )
 
@@ -133,12 +142,15 @@ class Menu:
         return False
 
     def render(self, window):
-        window.blit(self.image, (0,0))
+        xpos = (SOKOBAN.WINDOW_WIDTH - self.image.get_width())//2
+        ypos = (SOKOBAN.WINDOW_HEIGHT - self.image.get_height())//2
+        sc = pygame.transform.scale(self.image, (SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT))
+        # window.blit(self.image, (xpos,ypos))
+        window.blit(sc, (0, 0))
 
-        self.txtNew.render(window)
-        self.txtCont.render(window)
-        self.txtQuit.render(window)
-
+        for s in self.clickableTexts:
+            s.update()
+            s.render(window)
 
 
 class Interface:
