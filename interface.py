@@ -1,3 +1,4 @@
+import os
 import pygame
 import constants as SOKOBAN
 
@@ -91,8 +92,8 @@ class Text:
 
 class Menu:
     def __init__(self):
-        self.image = pygame.image.load('assets/images/menu.png').convert_alpha()
-        self.font_menu = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 30)
+        self.image = pygame.image.load(os.path.join('assets','images','menu.png')).convert_alpha()
+        self.font_menu = pygame.font.Font(os.path.join('assets','fonts','FreeSansBold.ttf'), 30)
 
         self.new_game = False
         self.continue_game = False
@@ -158,8 +159,8 @@ class Interface:
         self.game = game
         self.level = None
         self.mouse_pos = (-1,-1)
-        self.font_messages = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 18)
-        self.font_win  = pygame.font.Font('assets/fonts/FreeSansBold.ttf', 32)
+        self.font_messages = pygame.font.Font(os.path.join('assets','fonts','FreeSansBold.ttf'), 18)
+        self.font_win  = pygame.font.Font(os.path.join('assets','fonts','FreeSansBold.ttf'), 32)
         self.is_lost=False
         self.has_info=False
         self.is_solving=False

@@ -140,11 +140,11 @@ class Game:
         self.footstep_idx = -1
 
         self.sndPushing = pygame.mixer.Sound(fn('pushing-short.wav'))
-        self.sndPushing.set_volume(.05)
+        self.sndPushing.set_volume(.08)
         self.channelPushing = None
 
         self.sndWin = pygame.mixer.Sound(fn('jingle-win.wav'))
-        self.sndWin.set_volume(.05)
+        self.sndWin.set_volume(.06)
 
 
 

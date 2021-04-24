@@ -1,3 +1,4 @@
+import os
 import pygame
 import constants as S
 from copy import deepcopy
@@ -97,7 +98,7 @@ class Level:
 
     def load_file_by_file(self, levelnum, nextlevel=False):
         try:
-            with open("assets/levels/level_" + str(levelnum) + ".txt") as level_file:
+            with open(os.path.join('assets','levels',"level_" + str(levelnum) + ".txt")) as level_file:
                 rows = level_file.read().split('\n')
             self.parse_rows(rows, S.SYMBOLS_MODERN)
             return True
@@ -111,7 +112,7 @@ class Level:
             return
 
         verbose ('Reading file', self.filename)
-        with open("assets/levels/" + self.filename) as level_file:
+        with open(os.path.join('assets', 'levels', self.filename)) as level_file:
             rows = level_file.read().split('\n')
         num = 0
         lev = []
