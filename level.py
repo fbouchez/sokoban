@@ -436,7 +436,7 @@ class Level:
         if path is not None:
             pass
             # trying to improve last steps
-            # bs.improve()
+            bs.improve()
         return (found, message, bs.path)
 
 

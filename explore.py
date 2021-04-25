@@ -359,10 +359,16 @@ class BoxSolution:
 
         # find last push direction
         (box,d) = self.path[-1]
-
+        d = opposite(d)
+        box = in_dir(box,d)
         assert (box == stboxes[0])
-        if self.level.is_empty(in_dir(box,d)):
-            self.path.append((box,d))
+
+        sucbox = in_dir(box,d)
+        while self.level.is_empty(sucbox) \
+        and   self.level.is_target(sucbox):
+            self.path.append((box,opposite(d)))
+            box = sucbox
+            sucbox = in_dir(box,d)
 
 
 
@@ -392,14 +398,14 @@ class BoxSolution:
             m =self.manhattan(box,self.target)
 
             # hdist += m*m  ## good for open levels
-            # hdist += m
+            hdist += m
             # hdist += int(sqrt(m))
 
             # Trying special for labyrinth-like levels
             #
-            heur = surf * m
-            heur -= m*(m+1)//2
-            hdist += heur
+            # heur = surf * m
+            # heur -= m*(m+1)//2
+            # hdist += heur
 
         return hdist
 
