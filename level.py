@@ -432,7 +432,13 @@ class Level:
     def solve_one_box(self, source):
         verbose ("Moving one box from", source, "to any target")
         bs = BoxSolution(self, [source])
-        return bs.solve()
+        found,message,path = bs.solve()
+        if path is not None:
+            pass
+            # trying to improve last steps
+            # bs.improve()
+        return (found, message, bs.path)
+
 
     def move_one_box(self, source, dest):
         verbose ("Moving one box from", source, "to", dest)

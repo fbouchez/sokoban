@@ -9,6 +9,7 @@ from player import *
 from scores import *
 from interface import *
 from queue import Queue
+from random import randrange
 
 KEYDIR = {
         # regular arrow keys
@@ -112,8 +113,8 @@ class Game:
 
     def load_sounds(self):
         if not SOKOBAN.WITH_SOUND: return
-        self.sndFootstep = []
-        # pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, buffersize
+        # pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, 
+        # buffersize
         # pygame.mixer.pre_init(48000, 16, 2, 4096) #frequency, size, channels, buffersize
         # pygame.init() #turn all of pygame on.
 
@@ -128,21 +129,30 @@ class Game:
         def fn(f):
             return os.path.join('assets', 'sounds', f)
 
+        def ld(template,lst,num,volume):
+            for i in range (num):
+                f = fn(template.format(i))
+                snd = pygame.mixer.Sound(f)
+                snd.set_volume(volume)
+                lst.append(snd)
+
+        self.sndFootstep = []
         filetemplate = 'footstep-dirt-{:02d}.wav'
-        for i in range (SOKOBAN.SND_FOOTSTEPNUM):
-            f = fn(filetemplate.format(i))
-            # print ('loading', fn)
-            snd = pygame.mixer.Sound(f)
-            snd.set_volume(.3)
-            self.sndFootstep.append(snd)
-            # f.play()
-            # pygame.time.wait(200)
+        ld(filetemplate, self.sndFootstep, SOKOBAN.SND_FOOTSTEP_NUM, .3)
+
+        # self.sndWoodpush = []
+        # filetemplate = 'wood-friction-{:02d}.wav'
+        # ld(filetemplate, self.sndWoodpush, SOKOBAN.SND_WOODFRIC_NUM, .3)
+        self.sndPushing = pygame.mixer.Sound(fn('wood-friction-sheyvan.wav'))
+
         self.footstep_idx = -1
+        self.woodpush_idx = -1
 
         # self.sndPushing = pygame.mixer.Sound(fn('pushing-short.wav'))
-        self.sndPushing = pygame.mixer.Sound(fn('wood-friction.wav'))
+        # self.sndPushing = pygame.mixer.Sound(fn('wood-friction.wav'))
         # self.sndPushing.set_volume(.08)
         self.channelPushing = None
+        self.channelFootsteps = None
 
         self.sndWin = pygame.mixer.Sound(fn('jingle-win.wav'))
         self.sndWin.set_volume(.06)
@@ -220,15 +230,19 @@ class Game:
             sp = SOKOBAN.SPRITESIZE
             self.textures[sp] = {}
             for key, texture in self.textures[SOKOBAN.ORIG_SPRITESIZE].items():
-                sc = pygame.transform.scale(texture, (sp, sp))
+                sc = pygame.transform.smoothscale(texture, (sp, sp))
                 self.textures[sp][key] = sc
 
 
     def sound_play_footstep(self):
         if not SOKOBAN.WITH_SOUND: return
-        self.footstep_idx += 1
-        self.footstep_idx %= SOKOBAN.SND_FOOTSTEPNUM
-        self.sndFootstep[self.footstep_idx].play()
+        if self.channelFootsteps is not None:
+            if self.channelFootsteps.get_busy():
+                return
+        # self.footstep_idx += 1
+        # self.footstep_idx %= SOKOBAN.SND_FOOTSTEPNUM
+        self.footstep_idx = randrange(SOKOBAN.SND_FOOTSTEP_NUM)
+        self.channelFootsteps = self.sndFootstep[self.footstep_idx].play()
 
 
     def sound_play_pushing(self):
@@ -237,7 +251,10 @@ class Game:
         if self.channelPushing is not None:
             if self.channelPushing.get_busy():
                 return
-        self.channelPushing = self.sndPushing.play(0,1000)
+        self.channelPushing = self.sndPushing.play() #0,1000)
+
+        # self.woodpush_idx = randrange(SOKOBAN.SND_WOODFRIC_NUM)
+        # self.channelPushing = self.sndWoodpush[self.woodpush_idx].play()
 
 
     def sound_play_win(self):
@@ -500,15 +517,16 @@ class Game:
         # Move only one tile away, unless asked keep the motion going until key 
         # is released
         stop_next_tile = not continue_until_released
-
-        if status == SOKOBAN.ST_PUSHING:
-            self.sound_play_pushing()
-        else:
-            self.sound_play_footstep()
-
         # save one keydown event to have smooth turning
         save_event = None
+
+        is_win = False
         while True:
+            if status == SOKOBAN.ST_PUSHING:
+                self.sound_play_pushing()
+            else:
+                self.sound_play_footstep()
+
             # slows loop to target FPS
             t = self.clock.tick(SOKOBAN.TARGET_FPS)
 
@@ -546,8 +564,8 @@ class Game:
                     # check if winable state
                     # before continuing
                     if self.level.has_win():
-                        self.level_win()
-                        return
+                        is_win = True
+                        break
 
                     # or if position is lost...
                     lost = self.level.lost_state()
@@ -560,17 +578,20 @@ class Game:
                     self.player.stop_move()
                     break
                 # otherwise, continue, and play new sound
-                if status == SOKOBAN.ST_PUSHING:
-                    self.sound_play_pushing()
-                else:
-                    self.sound_play_footstep()
-
 
             prev_status = status
             status = self.player.status
 
             self.update_screen()
 
+        # stop sounds
+        if self.channelFootsteps is not None:
+            self.channelFootsteps.stop()
+        if self.channelPushing is not None:
+            self.channelPushing.stop()
+
+        if is_win:
+            self.level_win()
 
     def click_pos (self, position):
         if self.selected_position:
@@ -579,6 +600,7 @@ class Game:
             if postype == SOKOBAN.BOX:
                 self.cancel_selected()
 
+                # solving for only one box
                 self.interface.set_solving(True, num=0)
 
                 # now try to move the box

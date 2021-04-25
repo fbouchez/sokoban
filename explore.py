@@ -337,13 +337,40 @@ class BoxSolution:
         else:
             # create path
             path = self.path_from(init_state, found, states)
-            message = "Solution trouvée après exploration de "+str(states_explored)+ " états"
+            elapsed = time() - start_time
+            message = "Solution trouvée après exploration de "+str(states_explored)+ " états en " \
+                    + str(round(elapsed,1)) + " secondes"
 
 
         # restore level
         self.level.restore_state(self.save_state)
 
+        self.final_state = found
+        self.path = path
+
         return (found, message, path)
+
+    def improve(self):
+        # trying to improve final state if only one box by pushing it as much 
+        # as we can
+        sthash, stboxes, player = self.final_state
+        assert (len(stboxes) == 1)
+        assert (self.path is not None)
+
+        # find last push direction
+        (box,d) = self.path[-1]
+
+        assert (box == stboxes[0])
+        if self.level.is_empty(in_dir(box,d)):
+            self.path.append((box,d))
+
+
+
+
+
+
+
+
 
     def manhattan(self, source, dest):
         sx,sy = source
@@ -455,7 +482,7 @@ class BoxSolution:
             path.append(node['push'])
             current = node['prev']
 
-        return reversed(path)
+        return list(reversed(path))
 
 
 

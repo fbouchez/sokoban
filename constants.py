@@ -1,5 +1,5 @@
-SINGLE_FILE = 'Original.txt'
-# SINGLE_FILE = 'Tests.txt'
+# SINGLE_FILE = 'Original.txt'
+SINGLE_FILE = 'Tests.txt'
 # SINGLE_FILE = 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
 # SINGLE_FILE = 'Large Test Suite Sets/Grigr2001_100.xsb'
 # SINGLE_FILE = 'haikemono/Haikemono collection.txt'
@@ -23,7 +23,8 @@ WINDOW_HEIGHT = 768
 
 # sound parameters
 WITH_SOUND = True
-SND_FOOTSTEPNUM = 10
+SND_FOOTSTEP_NUM = 10
+SND_WOODFRIC_NUM = 62
 
 
 
