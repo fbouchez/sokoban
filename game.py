@@ -201,11 +201,14 @@ class Game:
         self.update_textures()
         self.player.update_textures()
 
+        sc = self.scores.get()
+        self.interface.best_moves(sc)
+
         return True
 
     def create_board(self):
         # determine size of level on screen
-        max_height = SOKOBAN.WINDOW_HEIGHT - 80
+        max_height = SOKOBAN.WINDOW_HEIGHT - 120
         max_width  = SOKOBAN.WINDOW_WIDTH - 2*BORDER
 
         max_sprite_size = min(

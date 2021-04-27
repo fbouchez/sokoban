@@ -217,6 +217,12 @@ class Interface:
                 self.font_messages, SOKOBAN.BLACK, SOKOBAN.ARIGHT, SOKOBAN.ABOTTOM,
                 callback=None)
 
+        self.txtBestMoves = Text("Meilleur : infini",
+                self.font_messages, SOKOBAN.BLACK, SOKOBAN.ARIGHT, SOKOBAN.ACUSTOM,
+                above=self.txtMoves,
+                callback=None)
+
+
 
         self.txtWin = Text ("Félicitations, niveau 1 terminé",
                 self.font_win, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
@@ -258,6 +264,7 @@ class Interface:
                 [
                 self.txtLevel,
                 self.txtMoves,
+                self.txtBestMoves,
                 self.txtPress,
                 self.txtInfo,
                 self.txtResol,
@@ -300,6 +307,11 @@ class Interface:
     def deactivate_cancel(self):
         self.txtCancel.change_color(SOKOBAN.GREY)
 
+    def best_moves(self, best):
+        if best is None:
+            self.txtBestMoves.update("Meilleur : infini")
+        else:
+            self.txtBestMoves.update("Meilleur : "+str(best))
 
     def display_info(self, message=None, error=False):
         if message is not None:
@@ -357,6 +369,7 @@ class Interface:
         self.txtLevel.render(window)
         self.txtTitle.render(window)
         self.txtMoves.render(window, "Coups : " + str(level.num_moves))
+        self.txtBestMoves.render(window)
         self.txtCancel.render(window)
         self.txtReset.render(window)
         self.txtVisu.render(window)

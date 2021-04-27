@@ -30,6 +30,10 @@ class Scores:
                 SOKOBAN.SINGLE_FILE: self.template()
             }
 
+    def get(self):
+        idx   = self.game.index_level
+        return self.scores[SOKOBAN.SINGLE_FILE]['levels'][idx]
+
     def last_level(self):
         if not SOKOBAN.SINGLE_FILE in self.scores:
             self.scores[SOKOBAN.SINGLE_FILE] = self.template()
