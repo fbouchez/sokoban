@@ -1,6 +1,7 @@
 # SINGLE_FILE = 'Original.txt'
+SINGLE_FILE = 'Original_remixed.txt'
 # SINGLE_FILE = 'XSokoban.txt'
-SINGLE_FILE = 'Simple Sokoban.txt'
+# SINGLE_FILE = 'Simple Sokoban.txt'
 # SINGLE_FILE = 'Tests.txt'
 # SINGLE_FILE = 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
 # SINGLE_FILE = 'Large Test Suite Sets/Grigr2001_100.xsb'

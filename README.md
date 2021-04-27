@@ -1,5 +1,5 @@
 Sokoban
-========
+=======
 
 A Sokoban game made with python and pygame.
 Update from original with floor tiles, animation, sound effects, support for more levels, and automated path searching + solving.

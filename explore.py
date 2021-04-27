@@ -370,11 +370,26 @@ class BoxSolution:
             box = sucbox
             sucbox = in_dir(box,d)
 
+        # now see if it can be pushed on one side
+        side = rotate(d)
+        sideo = opposite(side)
 
+        go = None
+        if self.level.is_empty(in_dir(box,side)) \
+        and self.level.is_empty(in_dir(box,sideo)):
+            if self.level.is_target(in_dir(box,side)):
+                go=side
+            elif self.level.is_target(in_dir(box,sideo)):
+                go=sideo
 
-
-
-
+        if go is not None:
+            d = go
+            sucbox = in_dir(box,d)
+            while self.level.is_empty(sucbox) \
+            and   self.level.is_target(sucbox):
+                self.path.append((box,opposite(d)))
+                box = sucbox
+                sucbox = in_dir(box,d)
 
 
 

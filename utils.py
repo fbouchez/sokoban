@@ -32,6 +32,9 @@ def in_dir(pos, d, dist=1):
     x,y=pos
     return x+mx*dist,y+my*dist
 
+def rotate(d):
+    # clockwise or rev-clockwise, (changes horiz<->vert)
+    return (d+2) % SOKOBAN.NUMDIRS
 
 def in_opp_dir(pos, d):
     return in_dir(pos, opposite(d))
