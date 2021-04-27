@@ -140,10 +140,10 @@ class Game:
         filetemplate = 'footstep-dirt-{:02d}.wav'
         ld(filetemplate, self.sndFootstep, SOKOBAN.SND_FOOTSTEP_NUM, .3)
 
-        # self.sndWoodpush = []
-        # filetemplate = 'wood-friction-{:02d}.wav'
-        # ld(filetemplate, self.sndWoodpush, SOKOBAN.SND_WOODFRIC_NUM, .3)
-        self.sndPushing = pygame.mixer.Sound(fn('wood-friction-sheyvan.wav'))
+        self.sndWoodpush = []
+        filetemplate = 'wood-friction-{:02d}.wav'
+        ld(filetemplate, self.sndWoodpush, SOKOBAN.SND_WOODFRIC_NUM, .8)
+        # self.sndPushing = pygame.mixer.Sound(fn('wood-friction-sheyvan.wav'))
 
         self.footstep_idx = -1
         self.woodpush_idx = -1
@@ -154,7 +154,7 @@ class Game:
         self.channelPushing = None
         self.channelFootsteps = None
 
-        self.sndWin = pygame.mixer.Sound(fn('jingle-win.wav'))
+        self.sndWin = pygame.mixer.Sound(fn('jingle-win.ogg'))
         self.sndWin.set_volume(.06)
 
 
@@ -254,10 +254,11 @@ class Game:
         if self.channelPushing is not None:
             if self.channelPushing.get_busy():
                 return
-        self.channelPushing = self.sndPushing.play() #0,1000)
 
-        # self.woodpush_idx = randrange(SOKOBAN.SND_WOODFRIC_NUM)
-        # self.channelPushing = self.sndWoodpush[self.woodpush_idx].play()
+        # self.channelPushing = self.sndPushing.play() #0,1000)
+#
+        self.woodpush_idx = randrange(SOKOBAN.SND_WOODFRIC_NUM)
+        self.channelPushing = self.sndWoodpush[self.woodpush_idx].play()
 
 
     def sound_play_win(self):

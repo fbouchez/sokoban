@@ -398,14 +398,14 @@ class BoxSolution:
             m =self.manhattan(box,self.target)
 
             # hdist += m*m  ## good for open levels
-            hdist += m
+            # hdist += m
             # hdist += int(sqrt(m))
 
             # Trying special for labyrinth-like levels
             #
-            # heur = surf * m
-            # heur -= m*(m+1)//2
-            # hdist += heur
+            heur = surf * m
+            heur -= m*(m+1)//2
+            hdist += heur
 
         return hdist
 

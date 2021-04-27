@@ -1,0 +1,18 @@
+Sounds downloaded from:
+https://freesound.org/
+(modified to be 44100 Hz)
+
+Footstep sounds:
+by LittleRobotSoundFactory
+https://freesound.org/people/LittleRobotSoundFactory/packs/16687/
+Under creative common licences
+
+Jingle Win sound:
+by LittleRobotSoundFactory
+Under creative common licence
+
+Box pushing sounds:
+wood-friction
+by Sheyvan
+Under creative common licence
+(edited to keep only 5 samples)

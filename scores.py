@@ -29,14 +29,17 @@ class Scores:
             self.scores = {
                 SOKOBAN.SINGLE_FILE: self.template()
             }
+        if not SOKOBAN.SINGLE_FILE in self.scores:
+            self.scores[SOKOBAN.SINGLE_FILE] = self.template()
 
     def get(self):
         idx   = self.game.index_level
-        return self.scores[SOKOBAN.SINGLE_FILE]['levels'][idx]
+        if len(self.scores[SOKOBAN.SINGLE_FILE]['levels']) > idx:
+            return self.scores[SOKOBAN.SINGLE_FILE]['levels'][idx]
+        else:
+            return None
 
     def last_level(self):
-        if not SOKOBAN.SINGLE_FILE in self.scores:
-            self.scores[SOKOBAN.SINGLE_FILE] = self.template()
         return self.scores[SOKOBAN.SINGLE_FILE]['last_level']
 
     def level_style(self):
