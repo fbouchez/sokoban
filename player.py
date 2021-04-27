@@ -45,7 +45,7 @@ class Player:
                 l = []
                 self.textures[sp].append(l)
                 for texture in direct:
-                    sc = pygame.transform.scale(texture, (sp, sp))
+                    sc = pygame.transform.smoothscale(texture, (sp, sp))
                     l.append(sc)
 
 
