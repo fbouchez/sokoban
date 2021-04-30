@@ -102,7 +102,7 @@ FLASH_DELAY = 100 # milliseconds
 
 
  # number of identical successive frames for animations
-FRAMES_PER_ANIM = 12
+FRAMES_PER_ANIM = 6
 
 # number of frames for a move: less makes character move faster but not enough
 # makes movement 'jerky'

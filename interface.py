@@ -139,6 +139,7 @@ class Menu:
         # check if some text has been clicked
         for t in self.clickableTexts:
             if t.is_clicked(pos_click, do_callback=True):
+                verbose('clicked on',t)
                 return True
         return False
 

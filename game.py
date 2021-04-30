@@ -386,6 +386,10 @@ class Game:
         remaining = self.level.cancel_last_change()
         if not remaining:
             self.interface.deactivate_cancel()
+        lost = self.level.lost_state()
+        if lost:
+            verbose ("Still lost state !")
+        self.interface.set_lost_state(lost)
 
 
 
@@ -425,10 +429,6 @@ class Game:
             elif event.key == K_c:
                 # Cancel last move
                 self.cancel_move()
-                lost = self.level.lost_state()
-                if lost:
-                    verbose ("Still lost state !")
-                self.interface.set_lost_state(lost)
 
 
 
