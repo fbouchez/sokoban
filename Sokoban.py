@@ -72,12 +72,12 @@ def main():
         elif event.type == MOUSEBUTTONDOWN:
             # mouse interactions
             if menu.click(event.pos):
-                if menu.new_game:
+                if menu.quit:
+                    break
+                elif menu.new_game:
                     new_game(window)
                 elif menu.continue_game:
                     continue_game(window)
-                elif menu.quit:
-                    break
                 else:
                     raise ValueError("Click problem on menu")
         elif event.type == VIDEORESIZE:

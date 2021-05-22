@@ -166,11 +166,15 @@ class Level:
             if not ret:
                 return False
 
-        dij = Dijkstra(self)
-        att = dij.attainable(self.player_position, boxes_block=False)
-        for x,y in att:
-            if self.map[y][x] == S.AIR:
-                self.map[y][x] = S.GROUND
+        dfs = DFS(self)
+
+        mark = dfs.search_floor(self.player_position)
+
+        for y in range(self.height):
+            for x in range(self.width):
+                if mark[y][x]:
+                    if self.map[y][x] == S.AIR:
+                        self.map[y][x] = S.GROUND
 
         # reset previous analyses
         self.dij = None

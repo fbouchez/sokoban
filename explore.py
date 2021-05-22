@@ -8,7 +8,33 @@ from time import time
 from math import sqrt
 
 
-MSG_SOLVE = "Explorés: {exp}     Temps: {el:.2f}s     Vitesse: {sp:.2f} états/s"
+class DFS:
+    def __init__(self, level):
+        self.level = level
+
+    def search_floor (self, source):
+        init_x, init_y = source
+
+        # to remember which tiles have been visited or not
+        mark =  [[False for x in range(self.level.width)] for y in range(self.level.height)]
+
+        def rec_explore (position):
+            x, y = position
+            if mark[y][x]:
+                return
+
+            # mark current position as visited
+            mark[y][x] = True
+
+            for d,(mx,my) in enumerate(SOKOBAN.DIRS):
+                if self.level.is_wall((x+mx,y+my)):
+                    continue
+
+                rec_explore ((x+mx,y+my))
+
+        rec_explore (source)
+        return mark
+
 
 class Dijkstra:
     def __init__(self, level):
@@ -94,6 +120,8 @@ class Dijkstra:
 
         return reversed(path)
 
+
+MSG_SOLVE = "Explorés: {exp}     Temps: {el:.2f}s     Vitesse: {sp:.2f} états/s"
 
 class Deadlocks:
     """

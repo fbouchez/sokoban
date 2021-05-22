@@ -1,21 +1,21 @@
 # SINGLE_FILE = 'Original.txt'
+# SINGLE_FILE = 'Minicosmos.txt'
 SINGLE_FILE = 'Original_remixed.txt'
+
+# SINGLE_FILE = 'Tests.txt'
+# SINGLE_FILE = 'Original_remixed.txt'
 # SINGLE_FILE = 'XSokoban.txt'
 # SINGLE_FILE = 'Simple Sokoban.txt'
-# SINGLE_FILE = 'Tests.txt'
 # SINGLE_FILE = 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
 # SINGLE_FILE = 'Large Test Suite Sets/Grigr2001_100.xsb'
 # SINGLE_FILE = 'Haikemono collection.txt'
 # SINGLE_FILE = 'Pufiban.txt'
 # SINGLE_FILE = 'microban.txt'
 
-
 # Normally, no need to modify anything below
 
-MAPWIDTH    = 25
-MAPHEIGHT   = 15
 ORIG_SPRITESIZE  = 32
-SPRITESIZE  = 32
+SPRITESIZE       = 32
 SPRITE_PLAYER_NUM = 3 # number of sprites in a player animation
 
 SPRITESIZES  = [16,20,24,28,32,36,40,44,48,52,56,60,64]
@@ -88,6 +88,7 @@ GREY            = (200,200,200)
 RED             = (150,0,0)
 GREEN           = (0,150,0)
 
+# Highlights
 HOFF  = 0
 HATT  = 1
 HSUCC = 2
@@ -109,6 +110,7 @@ FRAMES_PER_ANIM = 6
 # better to make it a fraction of SPRITESIZE
 MOVE_FRAMES = 8
 # MOVE_FRAMES = 1
+
 
 # number of frames for a move: more makes character move faster but consumes 
 # more CPU

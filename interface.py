@@ -1,6 +1,7 @@
 import os
 import pygame
 import constants as SOKOBAN
+from utils import *
 
 BORDER = 10
 
@@ -76,6 +77,8 @@ class Text:
         w=self.surf.get_width()
         h=self.surf.get_height()
 
+        verbose (self.text, "clicked:", click, "and position:", self.pos, "with wh:", w,h)
+
         cl = px < cx and cx < px+w and \
              py < cy and cy < py+h
 
@@ -94,12 +97,14 @@ class Menu:
     def __init__(self):
         self.image = pygame.image.load(os.path.join('assets','images','menu.png')).convert_alpha()
         self.font_menu = pygame.font.Font(os.path.join('assets','fonts','FreeSansBold.ttf'), 30)
+        self.reset_click()
+        self.load()
 
+
+    def reset_click(self):
         self.new_game = False
         self.continue_game = False
         self.quit = False
-
-        self.load()
 
     def set_new_game(self):
         self.new_game = True
@@ -136,10 +141,11 @@ class Menu:
 
 
     def click(self, pos_click):
+        self.reset_click()
         # check if some text has been clicked
         for t in self.clickableTexts:
             if t.is_clicked(pos_click, do_callback=True):
-                verbose('clicked on',t)
+                verbose('clicked on',t.text)
                 return True
         return False
 

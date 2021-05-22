@@ -25,6 +25,7 @@ KEYDIR = {
 }
 
 # keyboard keys corresponding to move directions
+# Must be in the same order as DIRS in common.py
 DIRKEY = [
         K_UP,
         K_DOWN,
@@ -69,7 +70,12 @@ class Game:
         self.selected_position = None
         self.origin_board = (0,0)
 
+
     def load_textures(self):
+        """
+        loads the textures that will be drawn in the game
+        (walls, boxes, player, etc.)
+        """
         def fn(f):
             return os.path.join('assets', 'images', f)
 
@@ -112,19 +118,13 @@ class Game:
                     }
 
     def load_sounds(self):
+        """
+        load the different sound effects for the game
+        - footstep when walking
+        - wood friction when pushing a box
+        - jingle win when a level is finished
+        """
         if not SOKOBAN.WITH_SOUND: return
-        # pygame.mixer.pre_init(44100, 16, 2, 4096) #frequency, size, channels, 
-        # buffersize
-        # pygame.mixer.pre_init(48000, 16, 2, 4096) #frequency, size, channels, buffersize
-        # pygame.init() #turn all of pygame on.
-
-        # filetest = 'assets/sounds/test.wav'
-        # test = pygame.mixer.Sound(filetest)
-        # for i in range(10):
-            # print('playing')
-            # test.play()
-            # pygame.time.wait(test.duration())
-            # pygame.time.wait(100)
 
         def fn(f):
             return os.path.join('assets', 'sounds', f)
@@ -143,14 +143,10 @@ class Game:
         self.sndWoodpush = []
         filetemplate = 'wood-friction-{:02d}.wav'
         ld(filetemplate, self.sndWoodpush, SOKOBAN.SND_WOODFRIC_NUM, .8)
-        # self.sndPushing = pygame.mixer.Sound(fn('wood-friction-sheyvan.wav'))
 
         self.footstep_idx = -1
         self.woodpush_idx = -1
 
-        # self.sndPushing = pygame.mixer.Sound(fn('pushing-short.wav'))
-        # self.sndPushing = pygame.mixer.Sound(fn('wood-friction.wav'))
-        # self.sndPushing.set_volume(.08)
         self.channelPushing = None
         self.channelFootsteps = None
 
@@ -167,7 +163,8 @@ class Game:
         if nextLevel:
             self.index_level += 1
         if prevLevel:
-            self.index_level -= 1
+            if self.index_level > 1:
+                self.index_level -= 1
 
         self.level.load(self.index_level)
 
