@@ -6,7 +6,21 @@ from utils import *
 BORDER = 10
 
 class Text:
-    def __init__(self,text,font,color,xalign,yalign,x=0,y=0,below=None,above=None,yfun=None,callback=None):
+    """
+    Class for a text displayed on screen.
+    Set the message ("text"), the font to use, the color, and either
+    - the position relative to current window, using xalign and yalign
+    - the absolute position, using x and y
+    - a mix of the above two (e.g., yalign at TOP, and absolute x)
+    - the relative position, using below or above, refering to another Text 
+      object
+    - a function to be called to compute y when resizing
+
+    Also set the callback: function to be called if text is clicked.
+    or 'retval': a value to return if text is clicked.
+    """
+
+    def __init__(self,text,font,color,xalign,yalign,x=0,y=0,below=None,above=None,yfun=None,callback=None,retval=None):
         self.font  = font
         self.color = color
         self.xalign = xalign
@@ -82,9 +96,17 @@ class Text:
         cl = px < cx and cx < px+w and \
              py < cy and cy < py+h
 
-        if cl and do_callback and self.callback is not None:
+        if not cl:
+            return False
+
+        if do_callback and self.callback is not None:
             self.callback()
-        return cl
+            return True
+
+        if self.retval is not None:
+            return self.retval
+
+        return True
 
 
     def render(self, window, text=None):
@@ -94,6 +116,10 @@ class Text:
 
 
 class Menu:
+    """
+    Initial menu when launching the game, with main choices (new game, 
+    continue, choose pack, or quit).
+    """
     def __init__(self):
         self.image = pygame.image.load(os.path.join('assets','images','menu.png')).convert_alpha()
         self.font_menu = pygame.font.Font(os.path.join('assets','fonts','FreeSansBold.ttf'), 30)
@@ -104,36 +130,47 @@ class Menu:
     def reset_click(self):
         self.new_game = False
         self.continue_game = False
+        self.choose_set = False
         self.quit = False
 
     def set_new_game(self):
         self.new_game = True
     def set_continue_game(self):
         self.continue_game = True
+    def set_choose_set(self):
+        self.choose_set = True
     def set_quit(self):
         self.quit = True
 
     def load(self):
-        self.txtCont = Text("Continuer",
+        self.txtCont = Text("Continuer (C)",
                 self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.AMID,
                 callback=self.set_continue_game
                 )
 
-        self.txtNew = Text("Nouvelle partie",
+        self.txtNew = Text("Nouvelle partie (N)",
                 self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 above=self.txtCont,
                 callback=self.set_new_game
                 )
 
-        self.txtQuit = Text("Quitter partie",
+        self.txtChoose = Text("Choisir pack de niveau (P)",
                 self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
                 below=self.txtCont,
+                callback=self.set_new_game
+                )
+
+
+        self.txtQuit = Text("Quitter partie (Q)",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                below=self.txtChoose,
                 callback=self.set_quit
                 )
 
         self.clickableTexts = [
                 self.txtNew,
                 self.txtCont,
+                self.txtChoose,
                 self.txtQuit
                 ]
 
@@ -161,7 +198,83 @@ class Menu:
             s.render(window)
 
 
+class PackChoice:
+    """
+    Menu when choosing a pack of Sokoban levels
+    """
+
+    def __init__(self):
+        # with open(os.path.join('assets', 'levels', self.filename)) as level_file:
+        self.font_menu = pygame.font.Font(os.path.join('assets','fonts','FreeSansBold.ttf'), 30)
+        self.load()
+
+    def load(self):
+        self.txtTitle = Text("Title",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.AMID
+                )
+
+        self.txtDesc = Text("Description",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM
+                above=self.txtCont,
+                )
+
+        self.txtChoose = Text("Choisir ce pack",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                below=self.txtCont,
+                retval='choose'
+                )
+
+        self.txtNext = Text("Suivant",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ARIGHT, SOKOBAN.AMID,
+                retval='next'
+                )
+
+        self.txtPrev = Text("Précédent",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ALEFT, SOKOBAN.AMID,
+                retval='pred'
+                )
+
+        self.txtReturn = Text("Revenir au menu",
+                self.font_menu, SOKOBAN.BLACK, SOKOBAN.ACENTER, SOKOBAN.ACUSTOM,
+                below=self.txtChoose,
+                retval='return'
+                )
+
+        self.clickableTexts = [
+                self.txtChoose,
+                self.txtReturn,
+                self.txtNext,
+                self.txtPrev,
+                ]
+
+        self.renderTexts = [
+                self.txtTitle,
+                self.txtDesc,
+                ] + self.clickableTexts
+
+
+    def click(self, pos_click):
+        self.reset_click()
+        # check if some text has been clicked
+        for t in self.clickableTexts:
+            if t.is_clicked(pos_click, do_callback=True):
+                verbose('clicked on',t.text)
+                return True
+        return False
+
+    def render(self, window):
+        for s in self.renderTexts:
+            s.update()
+            s.render(window)
+
+
+
+
 class Interface:
+    """
+    Interface when playing the sokoban levels, with level title, number of 
+    moves, possibility to cancel. etc.
+    """
     def __init__(self, game):
         self.game = game
         self.level = None

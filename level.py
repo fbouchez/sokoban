@@ -97,6 +97,10 @@ class Level:
 
 
     def load_file_by_file(self, levelnum, nextlevel=False):
+        """
+        Deprecated, levels are now handled as packs in a single file.
+        Should not be used anymore
+        """
         try:
             with open(os.path.join('assets','levels',"level_" + str(levelnum) + ".txt")) as level_file:
                 rows = level_file.read().split('\n')
@@ -107,6 +111,11 @@ class Level:
 
 
     def load_file(self):
+        """
+        Load a pack of sokoban levels.
+        Does not create all levels but stores the corresponding lines so
+        as to be able to load a particular level later.
+        """
         if not self.single_file:
             # will not read all files
             return

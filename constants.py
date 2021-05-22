@@ -12,6 +12,21 @@ SINGLE_FILE = 'Original_remixed.txt'
 # SINGLE_FILE = 'Pufiban.txt'
 # SINGLE_FILE = 'microban.txt'
 
+PACKS = [
+      'Original.txt'
+    , 'Minicosmos.txt'
+    , 'Original_remixed.txt'
+
+    , 'Simple Sokoban.txt'
+    , 'XSokoban.txt'
+    , 'Tests.txt'
+    , 'Pufiban.txt'
+    , 'microban.txt'
+    , 'Haikemono collection.txt'
+    , 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
+    , 'Large Test Suite Sets/Grigr2001_100.xsb'
+]
+
 # Normally, no need to modify anything below
 
 ORIG_SPRITESIZE  = 32

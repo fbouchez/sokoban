@@ -32,6 +32,10 @@ def continue_game(window):
     sokoban = Game(window, continueGame = True)
     sokoban.start()
 
+def choose_pack(window):
+    # Game menu
+    cpack = PackChoice()
+    cpack.render()
 
 def main():
 
@@ -66,6 +70,8 @@ def main():
                 new_game(window)
             elif event.key == K_c:
                 continue_game(window)
+            elif event.key == K_p:
+                choose_pack(window)
             elif event.key == K_ESCAPE or event.key == K_q:
                 break
 

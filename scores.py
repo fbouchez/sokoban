@@ -27,23 +27,33 @@ class Scores:
         except FileNotFoundError:
             print("No saved data")
             self.scores = {
-                SOKOBAN.SINGLE_FILE: self.template()
             }
-        if not SOKOBAN.SINGLE_FILE in self.scores:
-            self.scores[SOKOBAN.SINGLE_FILE] = self.template()
+
+        if "current" in self.scores:
+            self.current_pack = self.scores["current"]
+        else:
+            if not len(SOKOBAN.PACKS):
+                raise ValueError("PACK is empty, should at least contain one level pack")
+            self.current_pack = SOKOBAN.PACKS[0]
+            self.scores["current"] = self.current_pack
+
+
+        if not self.current_pack in self.scores:
+            self.scores[self.current_pack] = self.template()
+
 
     def get(self):
         idx   = self.game.index_level
-        if len(self.scores[SOKOBAN.SINGLE_FILE]['levels']) > idx:
-            return self.scores[SOKOBAN.SINGLE_FILE]['levels'][idx]
+        if len(self.scores[self.current_pack]['levels']) > idx:
+            return self.scores[self.current_pack]['levels'][idx]
         else:
             return None
 
     def last_level(self):
-        return self.scores[SOKOBAN.SINGLE_FILE]['last_level']
+        return self.scores[self.current_pack]['last_level']
 
     def level_style(self):
-        return self.scores[SOKOBAN.SINGLE_FILE]['style']
+        return self.scores[self.current_pack]['style']
 
     def save(self):
         # Saving score in file only when current level > saved level
@@ -51,9 +61,9 @@ class Scores:
         idx   = self.game.index_level
 
         if idx > self.last_level():
-            self.scores[SOKOBAN.SINGLE_FILE]['last_level'] = idx
+            self.scores[self.current_pack]['last_level'] = idx
 
-        lev = self.scores[SOKOBAN.SINGLE_FILE]['levels']
+        lev = self.scores[self.current_pack]['levels']
         while len(lev) < idx+1:
             lev.append(None)
 

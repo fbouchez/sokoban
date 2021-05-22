@@ -50,11 +50,11 @@ class Game:
         self.window = window
         self.player = None
         self.interface = None
+        self.scores = Scores(self)
         self.level = self.level = Level(self, 
-                SOKOBAN.SINGLE_FILE, # filename
+                self.scores.current_pack, # filename
                 single_file=True
                 )
-        self.scores = Scores(self)
         self.load_textures()
         self.load_sounds()
 
