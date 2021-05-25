@@ -196,39 +196,58 @@ class PackChoice(GenericMenu):
         self.font_text = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 18)
 
         self.choice = S.scores.current_pack
+        self.pack_idx = C.PACKS.index(self.choice)
         self.load()
         self.run()
 
     def read_desc(self):
+        desc = []
+
+        # need to differentiate the last lines as these migh be "attached" to 
+        # the first level
+        last_lines = []
+
         with open(os.path.join('assets', 'levels', self.choice)) as level_file:
-            rows = level_file.read().split('\n')
+            while True:
+                l = level_file.readline()
+                if valid_soko_line(l):
+                    break
+                l = l.strip()
+                if l == "":
+                    desc = desc + last_lines
+                    last_lines = []
+                last_lines.append(l) # also appends empty line
+        return desc
 
+    def reload(self):
+        self.choice = C.PACKS[self.pack_idx]
+        desc = self.read_desc()
 
-
+        self.txtTitle.update(self.choice)
+        self.txtDesc.update(desc)
 
     def choose(self):
         S.scores.set_pack(self.choice)
         self.set_return()
 
     def next(self):
-        pass
+        self.pack_idx += 1
+        self.pack_idx %= len(C.PACKS)
+        self.reload()
 
     def pred(self):
-        pass
+        self.pack_idx += len(C.PACKS) - 1
+        self.pack_idx %= len(C.PACKS)
+        self.reload()
 
 
     def load(self):
 
-        desc = "This is a really long sentence with a couple of breaks.\nSometimes it will break even if there isn't a break " \
-            "in the sentence, but that's because the text is too long to fit the screen.\nIt can look strange sometimes.\n" \
-            "This function doesn't check if the text is too high to fit on the height of the surface though, so sometimes " \
-            "text will disappear underneath the surface"
-
-
+        desc = self.read_desc()
 
         self.txtDesc = Paragraph(
             500, 400,
-            desc.splitlines(),
+            desc,
             self.font_text, C.BLACK, C.ACENTER, C.AMID,
         )
 

@@ -103,7 +103,7 @@ class Level:
         """
         try:
             with open(os.path.join('assets','levels',"level_" + str(levelnum) + ".txt")) as level_file:
-                rows = level_file.read().split('\n')
+                rows = level_file.read.splitlines()
             self.parse_rows(rows, C.SYMBOLS_MODERN)
             return True
         except FileNotFoundError:
@@ -122,7 +122,9 @@ class Level:
 
         verbose ('Reading file', self.filename)
         with open(os.path.join('assets', 'levels', self.filename)) as level_file:
-            rows = level_file.read().split('\n')
+            # prefers that to readlines() as there is not trailing "\n"
+            rows = level_file.read().splitlines()
+
         num = 0
         lev = []
         current = []

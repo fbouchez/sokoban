@@ -26,9 +26,16 @@ class Scores:
             }
         return t
 
-    def set_pack(self, pack):
+    def set_pack(self, pack, do_save=True):
         self.current_pack = pack
         self.scores["current"] = pack
+
+        if not self.current_pack in self.scores:
+            self.scores[self.current_pack] = self.template()
+            self.index_level = 1
+        else:
+            self.index_level = self.last_level()+1
+
         self.save()
 
 
@@ -42,19 +49,14 @@ class Scores:
             }
 
         if "current" in self.scores:
-            self.current_pack = self.scores["current"]
+            pack = self.scores["current"]
         else:
             if not len(C.PACKS):
                 raise ValueError("PACK is empty, should at least contain one level pack")
-            self.current_pack = C.PACKS[0]
-            self.scores["current"] = self.current_pack
+            pack = C.PACKS[0]
 
+        self.set_pack(pack)
 
-        if not self.current_pack in self.scores:
-            self.scores[self.current_pack] = self.template()
-            self.index_level = 1
-        else:
-            self.index_level = self.last_level()
 
     def get(self):
         idx   = self.index_level
