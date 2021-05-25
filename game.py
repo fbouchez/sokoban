@@ -40,18 +40,20 @@ DIRKEY = [
 ]
 
 
-
 class GameInterface:
     """
-    Interface when playing the sokoban levels, with level title, number of 
-    moves, possibility to cancel. etc.
+    Interface when playing the sokoban levels, with level title,
+    number of moves, possibility to cancel. etc.
     """
+
     def __init__(self, game):
         self.game = game
         self.level = None
-        self.mouse_pos = (-1,-1)
-        self.font_messages = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 18)
-        self.font_win = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 32)
+        self.mouse_pos = (-1, -1)
+        self.font_messages = pygame.font.Font(
+            os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 18)
+        self.font_win = pygame.font.Font(
+            os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 32)
         self.is_lost = False
         self.has_info = False
         self.is_solving = False
@@ -66,14 +68,11 @@ class GameInterface:
         else:
             self.txtTitle.update(" ")
 
-
-
     def reset(self):
         self.deactivate_cancel()
-        self.is_lost=False
-        self.has_info=False
-        self.is_solving=False
-
+        self.is_lost = False
+        self.has_info = False
+        self.is_solving = False
 
     def load_assets(self):
         self.txtPack = Text(
@@ -95,20 +94,23 @@ class GameInterface:
 
         self.txtTitle.set_pos(below=self.txtLevel)
 
+        self.txtCancel = Text(
+            "Annuler le dernier coup (C)",
+            self.font_messages, C.GREY, C.ARIGHT, C.ATOP,
+            callback=self.game.cancel_move
+        )
 
+        self.txtReset = Text(
+            "Recommencer le niveau (R)",
+            self.font_messages, C.BLACK, C.ACENTER, C.ATOP,
+            callback=self.game.load_level
+        )
 
-        self.txtCancel = Text("Annuler le dernier coup (C)",
-                self.font_messages, C.GREY, C.ARIGHT, C.ATOP,
-                callback=self.game.cancel_move)
-
-        self.txtReset = Text("Recommencer le niveau (R)",
-                self.font_messages, C.BLACK, C.ACENTER, C.ATOP,
-                callback=self.game.load_level)
-
-        self.txtVisu = Text("Aide visuelle (V)",
-                self.font_messages, C.BLACK, C.ALEFT, C.ABOTTOM,
-                callback=self.game.toggle_visualize)
-
+        self.txtVisu = Text(
+            "Aide visuelle (V)",
+            self.font_messages, C.BLACK, C.ALEFT, C.ABOTTOM,
+            callback=self.game.toggle_visualize
+        )
 
         self.txtNext = Text(
             ">>",
@@ -123,47 +125,54 @@ class GameInterface:
         )
 
 
+        self.txtHelp = Text(
+            "Aide sokoban (H) / Résolution complète (A)",
+            self.font_messages, C.BLACK, C.ACENTER, C.ABOTTOM,
+            callback=None
+        )
 
+        self.txtMoves = Text(
+            "Coups : 0",
+            self.font_messages, C.BLACK, C.ARIGHT, C.ABOTTOM,
+            callback=None
+        )
 
-        self.txtHelp = Text("Aide sokoban (H) / Résolution complète (A)",
-                self.font_messages, C.BLACK, C.ACENTER, C.ABOTTOM,
-                callback=None)
+        self.txtBestMoves = Text(
+            "Meilleur : infini",
+            self.font_messages, C.BLACK, C.ARIGHT, C.ACUSTOM,
+            above=self.txtMoves,
+            callback=None
+        )
 
-        self.txtMoves = Text("Coups : 0",
-                self.font_messages, C.BLACK, C.ARIGHT, C.ABOTTOM,
-                callback=None)
-
-        self.txtBestMoves = Text("Meilleur : infini",
-                self.font_messages, C.BLACK, C.ARIGHT, C.ACUSTOM,
-                above=self.txtMoves,
-                callback=None)
-
-
-
-        self.txtWin = Text ("Félicitations, niveau 1 terminé",
-                self.font_win, C.BLACK, C.ACENTER, C.ACUSTOM,
-                callback=None)
+        self.txtWin = Text("Félicitations, niveau 1 terminé",
+                           self.font_win, C.BLACK, C.ACENTER, C.ACUSTOM,
+                           callback=None)
         self.txtWin.set_pos(below=self.txtReset)
 
-        self.ymessages=210
+        self.ymessages = 210
 
-        self.txtPress = Text("(appuyez sur une touche pour continuer)",
-                self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
-                callback=None)
-        self.txtPress.set_pos(below=self.txtWin)
+        self.txtPress = Text(
+            "(appuyez sur une touche pour continuer)",
+            self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
+            below=self.txtWin,
+            callback=None
+        )
 
-        self.txtLost = Text("Résolution impossible (certaines boîtes sont définitivement coincées)",
-                self.font_messages, C.RED, C.ACENTER, C.ACUSTOM,
-                yfun=self.compute_ymessages,
-                callback=None)
+        self.txtLost = Text(
+            "Résolution impossible (certaines boîtes sont définitivement coincées)",
+            self.font_messages, C.RED, C.ACENTER, C.ACUSTOM,
+            yfun=self.compute_ymessages,
+            callback=None
+        )
 
-        self.txtResol = Text("Résolution en cours (Esc pour annuler)",
-                self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
-                yfun=lambda: self.compute_ymessages() - 30,
-                callback=None)
+        self.txtResol = Text(
+            "Résolution en cours (Esc pour annuler)",
+            self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
+            yfun=lambda: self.compute_ymessages() - 30,
+            callback=None
+        )
 
-
-        self.txtInfo = Text (
+        self.txtInfo = Text(
             " ",
             self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
             yfun=self.compute_ymessages,
@@ -195,20 +204,20 @@ class GameInterface:
             if t.is_clicked(pos_click, do_callback=True):
                 return None
 
-        x,y=pos_click
+        x, y = pos_click
         # check if clicked in the game
         origx, origy = self.game.origin_board
         if x > origx and x < origx + self.game.board.get_width() \
-        and y > origy and y < origy + self.game.board.get_height():
+                and y > origy and y < origy + self.game.board.get_height():
 
             bx = (x - origx) // C.SPRITESIZE
             by = (y - origy) // C.SPRITESIZE
 
             return bx, by
 
-
     def show_win(self, window, levelNum):
-        self.txtWin.render(window, "Félicitations, niveau " + str(levelNum) + " terminé")
+        self.txtWin.render(window, "Félicitations, niveau " +
+                           str(levelNum) + " terminé")
 
     def show_press_key(self, window):
         self.txtPress.render(window)
@@ -237,16 +246,15 @@ class GameInterface:
         else:
             self.txtInfo.change_color(C.BLACK)
 
-
     def set_solving(self, flag, num=None, message=None, error=False):
         self.has_info = flag
         self.is_solving = flag
         if num is not None:
-            message = "Résolution en cours, " + str(num) + " états explorés (Esc pour annuler)"
+            message = "Résolution en cours, " + \
+                str(num) + " états explorés (Esc pour annuler)"
         self.display_info(message, error)
 
-
-    def flash_screen (self, pos=None, color=C.RED):
+    def flash_screen(self, pos=None, color=C.RED):
         """
         Briefly flash a given tile at 'pos', or the whole board.
         """
@@ -270,14 +278,12 @@ class GameInterface:
             self.game.update_screen()
             pygame.time.wait(C.FLASH_DELAY)
 
-
     def update_positions(self):
         """
         Update all alignments after a window resizing
         """
         for s in self.all_texts:
             s.update()
-
 
     def render(self, window, level_num, level):
 
@@ -311,13 +317,14 @@ class Game:
       'scores' file) or to restart at level 1.
 
     """
+
     def __init__(self, window, continueGame=True):
         self.window = window
         self.player = None
         self.interface = None
         self.level = self.level = Level(
             self,
-            S.scores.current_pack, # filename
+            S.scores.current_pack,  # filename
             single_file=True)
         self.load_textures()
         self.load_sounds()
@@ -331,7 +338,6 @@ class Game:
         self.has_changed = False
         self.selected_position = None
         self.origin_board = (0, 0)
-
 
     def load_textures(self):
         """
@@ -360,24 +366,28 @@ class Game:
         def surfhigh(size, color, alpha):
             surf = pygame.Surface((size, size))
             surf.set_alpha(alpha)
-            surf.fill(color) # green highlight
+            surf.fill(color)  # green highlight
             return surf
 
         # small surfaces to draw attention to a particular tile of the board
         # e.g., to highlight a tile
-        surfAtt = lambda s: surfhigh(s, (0,255,0),50) # green highlight, for attainable tiles
-        surfSucc = lambda s: surfhigh(s, (0,0,255),50) # blue highlight,  to show successors of boxes
-        surfSelect = lambda s: surfhigh(s, (255,255,0),200) # yellow highlight, to show selection
-        surfError = lambda s: surfhigh(s, (255,0,0),200) # red highlight, in case of an error
+        # green highlight, for attainable tiles
+        def surfAtt(s): return surfhigh(s, (0, 255, 0), 50)
+        # blue highlight,  to show successors of boxes
+        def surfSucc(s): return surfhigh(s, (0, 0, 255), 50)
+        # yellow highlight, to show selection
+        def surfSelect(s): return surfhigh(s, (255, 255, 0), 200)
+        # red highlight, in case of an error
+        def surfError(s): return surfhigh(s, (255, 0, 0), 200)
 
         self.highlights = {}
         for s in C.SPRITESIZES:
             self.highlights[s] = {
                 C.HATT:   surfAtt(s),
                 C.HSUCC:  surfSucc(s),
-                C.HSELECT:surfSelect(s),
-                C.HERROR :surfError(s)
-                }
+                C.HSELECT: surfSelect(s),
+                C.HERROR: surfError(s)
+            }
 
     def load_sounds(self):
         """
@@ -386,7 +396,8 @@ class Game:
         - wood friction when pushing a box
         - jingle win when a level is finished
         """
-        if not C.WITH_SOUND: return
+        if not C.WITH_SOUND:
+            return
 
         def fn(f):
             return os.path.join('assets', 'sounds', f)
@@ -415,7 +426,6 @@ class Game:
         self.sndWin = pygame.mixer.Sound(fn('jingle-win.ogg'))
         self.sndWin.set_volume(.06)
 
-
     def load_next(self):
         self.load_level(nextLevel=True)
 
@@ -436,9 +446,10 @@ class Game:
         self.level.load(S.scores.index_level)
 
         if not self.level.loaded:
-            ## We tried to load past the last available level
+            # We tried to load past the last available level
             print("Plus de niveau disponible")
-            self.interface.display_info("Plus de niveau disponible", error=True)
+            self.interface.display_info(
+                "Plus de niveau disponible", error=True)
             self.interface.txtInfo.render(self.window)
             self.wait_key(update=False)
             self.playing = False
@@ -454,7 +465,6 @@ class Game:
             self.level.title)
 
         self.create_board()
-
 
         if self.player:
             self.interface.level = self.level
@@ -503,7 +513,6 @@ class Game:
             self.level.width * C.SPRITESIZE,
             self.level.height * C.SPRITESIZE))
 
-
     def update_textures(self):
         if C.SPRITESIZE not in self.textures:
             sp = C.SPRITESIZE
@@ -512,9 +521,9 @@ class Game:
                 sc = pygame.transform.smoothscale(texture, (sp, sp))
                 self.textures[sp][key] = sc
 
-
     def sound_play_footstep(self):
-        if not C.WITH_SOUND: return
+        if not C.WITH_SOUND:
+            return
         if self.channelFootsteps is not None:
             if self.channelFootsteps.get_busy():
                 return
@@ -523,9 +532,9 @@ class Game:
         self.footstep_idx = randrange(C.SND_FOOTSTEP_NUM)
         self.channelFootsteps = self.sndFootstep[self.footstep_idx].play()
 
-
     def sound_play_pushing(self):
-        if not C.WITH_SOUND: return
+        if not C.WITH_SOUND:
+            return
         # check if previous sound is still playing
         if self.channelPushing is not None:
             if self.channelPushing.get_busy():
@@ -536,25 +545,20 @@ class Game:
         self.woodpush_idx = randrange(C.SND_WOODFRIC_NUM)
         self.channelPushing = self.sndWoodpush[self.woodpush_idx].play()
 
-
     def sound_play_win(self):
-        if not C.WITH_SOUND: return
+        if not C.WITH_SOUND:
+            return
         self.sndWin.play()
-
-
-
-
-
-
 
     def start(self):
         """
         main loop of  the game
         """
         loaded = self.load_level()
-        if not loaded: return
+        if not loaded:
+            return
 
-        # code to test performance: compute the number of frames per second 
+        # code to test performance: compute the number of frames per second
         # (FPS)
         self.clock = pygame.time.Clock()
 
@@ -568,17 +572,16 @@ class Game:
             ret = self.process_event(pygame.event.wait())
             if ret:
                 self.update_screen()
-            self.clock.tick() # should be called once per frame
+            self.clock.tick()  # should be called once per frame
 
             # new frame: store number of milliseconds passed since previous call
             # total_time += t
             # q.put(t)
             # if q.qsize() >= 60:
-                # l = q.get()
-                # total_time -= l
-                # fps = 60 / total_time * 1000
-                # print(fps_message.format(fps=fps), total_time, end="\r")
-
+            # l = q.get()
+            # total_time -= l
+            # fps = 60 / total_time * 1000
+            # print(fps_message.format(fps=fps), total_time, end="\r")
 
     def toggle_visualize(self):
         """
@@ -592,15 +595,14 @@ class Game:
             # disable highlighted tiles if going out of visual aid
             self.level.reset_highlight()
 
-
-
     def animate_move_to(self, position):
         """
         Move the character to 'position' by computing the shortest path
         then moving it along the path.
         """
         path = self.level.path_to(position)
-        if not path: return
+        if not path:
+            return
 
         # speed up movement
         save_anim = C.MOVE_FRAMES
@@ -616,7 +618,6 @@ class Game:
 
         # restore movement speed
         C.MOVE_FRAMES = save_anim
-
 
     def animate_move_boxes(self, path, skip_last=False, fast=True):
         """
@@ -652,8 +653,6 @@ class Game:
         if self.level.has_win():
             self.level_win()
 
-
-
     def cancel_selected(self):
         self.selected_position = None
         self.level.reset_highlight()
@@ -666,9 +665,6 @@ class Game:
         if lost:
             verbose("Still lost state !")
         self.interface.set_lost_state(lost)
-
-
-
 
     def process_event(self, event):
         if event.type == QUIT:
@@ -703,12 +699,10 @@ class Game:
                 # Cancel last move
                 self.cancel_move()
 
-
-
             # "Test" key
             elif event.key == K_t:
-                ## Add code here that you would like to trigger
-                ## with the 'T' key
+                # Add code here that you would like to trigger
+                # with the 'T' key
                 pass
 
             # "all box solve" key
@@ -737,7 +731,7 @@ class Game:
 
                 self.interface.set_solving(False)
             else:
-                verbose ("Unbound key", event.key)
+                verbose("Unbound key", event.key)
 
         elif event.type == MOUSEBUTTONDOWN:
             position = self.interface.click(event.pos, self.level)
@@ -759,7 +753,7 @@ class Game:
             C.WINDOW_WIDTH = w
             C.WINDOW_HEIGHT = h
 
-            # need to recreate the window although the doc says it should be 
+            # need to recreate the window although the doc says it should be
             # automatically updated
             self.window = pygame.display.set_mode(
                 (C.WINDOW_WIDTH, C.WINDOW_HEIGHT), RESIZABLE)
@@ -768,10 +762,7 @@ class Game:
             self.player.update_textures()
             self.interface.update_positions()
 
-
-
         return True
-
 
     def move_player(self, key, continue_until_released=False):
         """
@@ -793,11 +784,11 @@ class Game:
         if status == C.ST_IDLE:
             return
 
-        # keep previous status to check if there is a win (only when status was 
+        # keep previous status to check if there is a win (only when status was
         # 'pushing'
         prev_status = status
 
-        # Move only one tile away, unless asked keep the motion going until key 
+        # Move only one tile away, unless asked keep the motion going until key
         # is released
         stop_next_tile = not continue_until_released
         # save one keydown event to have smooth turning
@@ -820,7 +811,8 @@ class Game:
             # press of a new key (save it for later)
             while not stop_next_tile:
                 event = pygame.event.poll()
-                if event.type == NOEVENT: break
+                if event.type == NOEVENT:
+                    break
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit(0)
@@ -835,7 +827,7 @@ class Game:
                         # keep moving but stop at next tile
                         stop_next_tile = True
                         if save_event is not None:
-                            # put back the pressed key so it will be processed 
+                            # put back the pressed key so it will be processed
                             # by the main loop as soon as this function returns
                             pygame.event.post(save_event)
                         break
@@ -892,7 +884,8 @@ class Game:
                     found, message, path = self.level.solve_one_box(selpos)
                 else:
                     # different position: move the box to this area
-                    found, message, path = self.level.move_one_box(selpos, position)
+                    found, message, path = self.level.move_one_box(
+                        selpos, position)
 
                 self.interface.set_solving(
                     True,
@@ -921,7 +914,6 @@ class Game:
             # trying to move the character
             self.animate_move_to(position)
 
-
     def wait_key(self, update=True):
         if update:
             self.update_screen()
@@ -940,7 +932,7 @@ class Game:
 
         while event.type != NOEVENT:
             if event.type == KEYDOWN \
-            and event.key == K_ESCAPE:
+                    and event.key == K_ESCAPE:
                 self.interface.set_solving(False)
                 return True
             event = pygame.event.poll()
@@ -951,7 +943,8 @@ class Game:
         self.window.fill(C.WHITE)
         self.board.fill(C.WHITE)
 
-        self.level.render(self.board, self.textures[C.SPRITESIZE], self.highlights)
+        self.level.render(
+            self.board, self.textures[C.SPRITESIZE], self.highlights)
         self.player.render(self.board, self.textures[C.ORIG_SPRITESIZE])
 
         if self.has_changed:
@@ -963,7 +956,6 @@ class Game:
         pos_y_board = (C.WINDOW_HEIGHT // 2) - (self.board.get_height() // 2)
         self.origin_board = (pos_x_board, pos_y_board)
         self.window.blit(self.board, self.origin_board)
-
 
         self.interface.render(self.window, S.scores.index_level, self.level)
 
@@ -978,7 +970,6 @@ class Game:
         self.wait_key(update=False)
 
         self.load_level(nextLevel=True)
-
 
     def debug(self):
         self.update_screen()
