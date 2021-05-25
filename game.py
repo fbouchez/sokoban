@@ -109,6 +109,22 @@ class GameInterface:
                 self.font_messages, C.BLACK, C.ALEFT, C.ABOTTOM,
                 callback=self.game.toggle_visualize)
 
+
+        self.txtNext = Text(
+            ">>",
+            self.font_messages, C.BLACK, C.ARIGHT, C.AMID,
+            callback=self.game.load_next
+        )
+
+        self.txtPrev = Text(
+            "<<",
+            self.font_messages, C.BLACK, C.ALEFT, C.AMID,
+            callback=self.game.load_prev
+        )
+
+
+
+
         self.txtHelp = Text("Aide sokoban (H) / Résolution complète (A)",
                 self.font_messages, C.BLACK, C.ACENTER, C.ABOTTOM,
                 callback=None)
@@ -158,6 +174,8 @@ class GameInterface:
                 self.txtReset,
                 self.txtVisu,
                 self.txtHelp,
+                self.txtNext,
+                self.txtPrev,
                 ]
 
         self.all_texts = self.clickableTexts + \
@@ -270,6 +288,8 @@ class GameInterface:
         self.txtPack.render(window)
         self.txtLevel.render(window)
         self.txtTitle.render(window)
+        self.txtNext.render(window)
+        self.txtPrev.render(window)
         self.txtMoves.render(window, "Coups : " + str(level.num_moves))
         self.txtBestMoves.render(window)
         self.txtCancel.render(window)
@@ -403,6 +423,11 @@ class Game:
         self.sndWin.set_volume(.06)
 
 
+    def load_next(self):
+        self.load_level(nextLevel=True)
+
+    def load_prev(self):
+        self.load_level(prevLevel=True)
 
     def load_level(self, nextLevel=False, prevLevel=False):
         """
@@ -423,6 +448,7 @@ class Game:
             self.interface.display_info("Plus de niveau disponible", error=True)
             self.interface.txtInfo.render(self.window)
             self.wait_key(update=False)
+            self.playing = False
             return False
 
         assert self.interface
@@ -454,8 +480,8 @@ class Game:
 
     def create_board(self):
         # determine size of level on screen
-        max_height = C.WINDOW_HEIGHT - 120
-        max_width = C.WINDOW_WIDTH - 2*BORDER
+        max_height = C.WINDOW_HEIGHT - 2*C.MAP_BORDER
+        max_width = C.WINDOW_WIDTH - 2*C.MAP_BORDER
 
         max_sprite_size = min(
             max_height / self.level.height,
@@ -666,18 +692,15 @@ class Game:
             elif event.key in KEYDIR.keys():
                 self.move_player(event.key, continue_until_released=True)
 
-            elif event.key == K_n: # cheat key :-)
+            elif event.key == K_n or event.key == K_GREATER:
                 ret = self.load_level(nextLevel=True)
-                if not ret:
-                    self.playing = False
-                    return  False
 
-            elif event.key == K_p: # back key
+            elif event.key == K_p or event.key == K_LESS:
                 self.load_level(prevLevel=True)
 
             elif event.key == K_r:
                 # Restart current level
-                self.load_level(nextLevel=False)
+                self.load_level()
 
             elif event.key == K_v:
                 # Vizualize possible moves
@@ -691,12 +714,9 @@ class Game:
 
             # "Test" key
             elif event.key == K_t:
+                ## Add code here that you would like to trigger
+                ## with the 'T' key
                 pass
-                # path = self.level.move_one_box((8, 3), (4, 3))
-                # if not path:
-                    # self.flash_screen((8,3))
-                # else:
-                    # self.animate_move_boxes(path)
 
             # "all box solve" key
             elif event.key == K_a:
@@ -720,6 +740,8 @@ class Game:
                     self.animate_move_boxes(path, skip_last=True, fast=False)
 
                 self.interface.set_solving(False)
+            else:
+                verbose ("Unbound key", event.key)
 
         elif event.type == MOUSEBUTTONDOWN:
             position = self.interface.click(event.pos, self.level)

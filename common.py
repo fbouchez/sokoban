@@ -42,6 +42,11 @@ SPRITESIZES  = [16,20,24,28,32,36,40,44,48,52,56,60,64] #,75]
 WINDOW_WIDTH  = 1024
 WINDOW_HEIGHT = 768
 
+BORDER = 10 # blank space around the main window
+
+MAP_BORDER = 60 # blank space around the level map
+
+
 
 # sound parameters
 WITH_SOUND = True
