@@ -39,7 +39,7 @@ class Text:
 
     def change_color(self, color):
         self.color = color
-        self.update()
+        self.make_surface(self.text)
 
     def make_surface(self, text):
         self.surf = self.font.render(text, True, self.color, C.WHITE)

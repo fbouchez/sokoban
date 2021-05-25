@@ -69,7 +69,7 @@ class GameInterface:
 
 
     def reset(self):
-        self.txtCancel.change_color(C.GREY)
+        self.deactivate_cancel()
         self.is_lost=False
         self.has_info=False
         self.is_solving=False
