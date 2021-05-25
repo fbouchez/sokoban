@@ -6,21 +6,26 @@ import os
 import pygame
 from pygame.locals import *
 import common as C
+import scores as S
 from graphics import *
 from game import Game
 from utils import *
 
+
 class GenericMenu:
 
-    def __init__(self):
+    def __init__(self, window):
+        self.window = window
         self.quit_menu = False
+        self.clickableTexts = []
+        self.renderTexts = []
 
         self.keys_events = {
-            K_ESCAPE: self.set_quit,
+            K_ESCAPE: self.set_return,
         }
         pass
 
-    def set_quit(self):
+    def set_return(self):
         self.quit_menu = True
 
     def run(self):
@@ -30,8 +35,13 @@ class GenericMenu:
             self.render()
             pygame.display.flip()
 
-    def render(self):
-        pass
+    def click(self, pos_click):
+        # check if some text has been clicked
+        for t in self.clickableTexts:
+            if t.is_clicked(pos_click, do_callback=True):
+                verbose('clicked on', t.text)
+                return True
+        return False
 
 
     def handle_event(self):
@@ -47,6 +57,10 @@ class GenericMenu:
             pygame.quit()
 
         if event.type == VIDEORESIZE:
+            if pygame.event.peek(eventtype=VIDEORESIZE):
+                print ("Resize on the event queue!")
+                return None
+
             w, h = event.dict['size']
             C.WINDOW_WIDTH = w
             C.WINDOW_HEIGHT = h
@@ -75,6 +89,11 @@ class GenericMenu:
         # event was not processed
         return event
 
+    def render(self):
+        for s in self.renderTexts:
+            s.update()
+            s.render(self.window)
+
 
 
 class Menu(GenericMenu):
@@ -83,17 +102,9 @@ class Menu(GenericMenu):
     continue, choose pack, or quit).
     """
     def __init__(self, window):
-        super().__init__()
-        self.window = window
+        super().__init__(window)
         self.image = pygame.image.load(os.path.join('assets', 'images', 'menu.png')).convert_alpha()
         self.font_menu = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 30)
-
-        self.keys_events.update ( {
-            K_n: self.new_game,
-            K_c: self.continue_game,
-            K_p: self.choose_pack,
-            K_q: self.set_quit
-        } )
 
         self.load()
         self.run()
@@ -108,8 +119,7 @@ class Menu(GenericMenu):
 
     def choose_pack(self):
         # choosing a level pack
-        cpack = PackChoice(self.window)
-        cpack.render()
+        PackChoice(self.window)
 
 
 
@@ -142,7 +152,7 @@ class Menu(GenericMenu):
             "Quitter partie (Q)",
             self.font_menu, C.BLACK, C.ACENTER, C.ACUSTOM,
             below=self.txtChoose,
-            callback=self.set_quit
+            callback=self.set_return,
         )
 
         self.clickableTexts = [
@@ -152,17 +162,16 @@ class Menu(GenericMenu):
             self.txtQuit,
         ]
 
+        self.renderTexts = self.clickableTexts
+
+        self.keys_events.update({
+            K_n: self.new_game,
+            K_c: self.continue_game,
+            K_p: self.choose_pack,
+            K_q: self.set_return,
+        })
 
 
-
-    def click(self, pos_click):
-        self.reset_click()
-        # check if some text has been clicked
-        for t in self.clickableTexts:
-            if t.is_clicked(pos_click, do_callback=True):
-                verbose('clicked on', t.text)
-                return True
-        return False
 
 
     def render(self):
@@ -172,9 +181,7 @@ class Menu(GenericMenu):
         # window.blit(self.image, (xpos,ypos))
         self.window.blit(sc, (0, 0))
 
-        for s in self.clickableTexts:
-            s.update()
-            s.render(self.window)
+        super().render()
 
 
 class PackChoice(GenericMenu):
@@ -183,49 +190,78 @@ class PackChoice(GenericMenu):
     """
 
     def __init__(self, window):
-        super().__init__()
-        self.window = window
-        # with open(os.path.join('assets', 'levels', self.filename)) as level_file:
+        super().__init__(window)
         self.font_menu = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 30)
+        self.font_action = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 24)
+        self.font_text = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 18)
+
+        self.choice = S.scores.current_pack
         self.load()
         self.run()
 
+    def read_desc(self):
+        with open(os.path.join('assets', 'levels', self.choice)) as level_file:
+            rows = level_file.read().split('\n')
+
+
+
+
+    def choose(self):
+        S.scores.set_pack(self.choice)
+        self.set_return()
+
+    def next(self):
+        pass
+
+    def pred(self):
+        pass
+
+
     def load(self):
-        self.txtDesc = Text(
-            "Description",
-            self.font_menu, C.BLACK, C.ACENTER, C.AMID,
+
+        desc = "This is a really long sentence with a couple of breaks.\nSometimes it will break even if there isn't a break " \
+            "in the sentence, but that's because the text is too long to fit the screen.\nIt can look strange sometimes.\n" \
+            "This function doesn't check if the text is too high to fit on the height of the surface though, so sometimes " \
+            "text will disappear underneath the surface"
+
+
+
+        self.txtDesc = Paragraph(
+            500, 400,
+            desc.splitlines(),
+            self.font_text, C.BLACK, C.ACENTER, C.AMID,
         )
 
         self.txtTitle = Text(
-            "Title",
+            self.choice,
             self.font_menu, C.BLACK, C.ACENTER, C.ACUSTOM,
             above=self.txtDesc
         )
 
         self.txtChoose = Text(
-            "Choisir ce pack",
-            self.font_menu, C.BLACK, C.ACENTER, C.ACUSTOM,
+            "Choisir ce pack (C)",
+            self.font_action, C.BLACK, C.ACENTER, C.ACUSTOM,
             below=self.txtDesc,
-            retval='choose'
+            callback=self.choose,
         )
 
         self.txtNext = Text(
-            "Suivant",
-            self.font_menu, C.BLACK, C.ARIGHT, C.AMID,
-            retval='next'
+            "Suivant (S)",
+            self.font_action, C.BLACK, C.ARIGHT, C.AMID,
+            callback=self.next,
         )
 
         self.txtPrev = Text(
-            "Précédent",
-            self.font_menu, C.BLACK, C.ALEFT, C.AMID,
-            retval='pred'
+            "Précédent (P)",
+            self.font_action, C.BLACK, C.ALEFT, C.AMID,
+            callback=self.pred,
         )
 
         self.txtReturn = Text(
-            "Revenir au menu",
-            self.font_menu, C.BLACK, C.ACENTER, C.ACUSTOM,
+            "Revenir au menu (Q)",
+            self.font_action, C.BLACK, C.ACENTER, C.ABOTTOM,
             below=self.txtChoose,
-            retval='return'
+            callback=self.set_return
         )
 
         self.clickableTexts = [
@@ -241,14 +277,14 @@ class PackChoice(GenericMenu):
         ] + self.clickableTexts
 
 
-    def click(self, pos_click):
-        self.reset_click()
-        # check if some text has been clicked
-        for t in self.clickableTexts:
-            if t.is_clicked(pos_click, do_callback=True):
-                verbose('clicked on',t.text)
-                return True
-        return False
+        self.keys_events.update({
+            K_c: self.choose,
+            K_s: self.next,
+            K_p: self.pred,
+            K_q: self.set_return,
+        })
+
+
 
 
 
@@ -257,7 +293,5 @@ class PackChoice(GenericMenu):
         for s in self.renderTexts:
             s.update()
             s.render(self.window)
-
-
 
 

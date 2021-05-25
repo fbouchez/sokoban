@@ -7,7 +7,6 @@ from pygame.locals import *
 import common as C
 from utils import *
 
-
 BORDER = 10
 
 class Text:
@@ -35,7 +34,6 @@ class Text:
         self.above = above
         self.callback = callback
         self.pos  = (x,y)
-        self.surf = None
         self.update(text)
 
 
@@ -43,10 +41,13 @@ class Text:
         self.color = color
         self.update()
 
+    def make_surface(self, text):
+        self.surf = self.font.render(text, True, self.color, C.WHITE)
+
     def update(self, text=None):
-        if text:
+        if text is not None:
             self.text = text
-        self.surf= self.font.render(self.text, True, self.color, C.WHITE)
+            self.make_surface(self.text)
 
         if self.xalign == C.ALEFT:
             xpos = BORDER
@@ -118,5 +119,43 @@ class Text:
         if text:
             self.update(text)
         window.blit(self.surf, self.pos)
+
+
+
+class Paragraph(Text):
+    """
+    Similar to Text class, but handles multiline paragraphs passed as 
+    a list of lines.
+    """
+
+    def __init__(self, max_width, max_height, *args, **kwargs):
+        self.max_width = max_width
+        self.max_height = max_height
+        self.surf = pygame.Surface((self.max_width, self.max_height))
+        super().__init__(*args, **kwargs)
+
+    def make_surface(self, text):
+        self.surf.fill(C.WHITE)
+        pos = (0, 0)
+        words = [line.split(' ') for line in text]  # 2D array where each row is a list of words.
+        space, line_height = self.font.size(' ')  # The width and height of a space.
+        x, y = pos
+
+        for line in words:
+            for word in line:
+                word_surface = self.font.render(word, True, self.color, C.WHITE)
+                word_width, _ = word_surface.get_size()
+                if x + word_width >= self.max_width:
+                    x = pos[0]  # Reset the x.
+                    y += line_height  # Start on new row.
+                    if y > self.max_height:
+                        return
+                self.surf.blit(word_surface, (x, y))
+                x += word_width + space
+            x = pos[0]  # Reset the x.
+            y += line_height  # Start on new row.
+            if y > self.max_height:
+                return
+
 
 

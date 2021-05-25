@@ -55,3 +55,15 @@ def islast(o):
         except StopIteration:
             yield (True, e)
             break
+
+def valid_soko_line(l):
+    """
+    A valid Sokoban level contains only spaces until a wall '#'
+    """
+    h = l.find('#')
+    if h == -1:
+        return False
+    for i in range(h):
+        if l[i] != ' ':
+            return False
+    return True

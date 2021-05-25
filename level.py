@@ -144,16 +144,7 @@ class Level:
                 title=r[7:]
 
             # check if this is a valid line:
-            # only blanks until a wall '#'
-            h = r.find('#')
-            if h == -1:
-                continue
-            valid=True
-            for i in range(h):
-                if r[i] != ' ':
-                    valid=False
-                    break
-            if not valid:
+            if not valid_soko_line(r):
                 continue
 
             current.append(r) # row belongs to level
