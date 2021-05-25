@@ -36,7 +36,7 @@ WINDOW_HEIGHT = 768
 
 BORDER = 10 # blank space around the main window
 
-MAP_BORDER = 60 # blank space around the level map
+MAP_BORDER = 80 # blank space around the level map
 
 
 
@@ -44,7 +44,6 @@ MAP_BORDER = 60 # blank space around the level map
 WITH_SOUND = True
 SND_FOOTSTEP_NUM = 10
 SND_WOODFRIC_NUM = 5
-
 
 
 # Text alignment

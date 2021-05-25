@@ -48,14 +48,11 @@ def main():
     # read scores and current pack / last level information
     scores.load_scores()
 
-    if C.WITH_SOUND:
-        pygame.mixer.pre_init(44100, 16, 2, 4096) # setup mixer to avoid sound lag
-
     # Window creation
     pygame.init()
 
     # Key repetition to allow  fast cancels
-    pygame.key.set_repeat(100, 60)
+    pygame.key.set_repeat(400, 60)
     pygame.display.set_caption("Sokoban Game")
     window = pygame.display.set_mode((C.WINDOW_WIDTH, C.WINDOW_HEIGHT), RESIZABLE)
 
