@@ -18,15 +18,14 @@ class Level:
     Store the internal state of a level
     """
 
-    def __init__(self, game, filename, single_file=True):
+    def __init__(self, game, filename):
         self.game=game
         self.num_moves = 0
 # START_CUT
         self.dij = None
 # END_CUT
         self.filename = filename
-        self.single_file        = single_file
-        self.single_file_levels = []
+        self.level_lines = []
         self.level_number = 0
         self.load_file()    # read whole file
         self.loaded = False # True when a level is loaded
@@ -115,9 +114,6 @@ class Level:
         Does not create all levels but stores the corresponding lines so
         as to be able to load a particular level later.
         """
-        if not self.single_file:
-            # will not read all files
-            return
 
         verbose ('Reading file', self.filename)
         with open(os.path.join('assets', 'levels', self.filename)) as level_file:
@@ -150,17 +146,16 @@ class Level:
 
             current.append(r) # row belongs to level
 
-        self.single_file_levels = lev
+        self.level_lines = lev
 
 
     def load(self, levelnum):
         self.loaded=False
-        assert self.single_file_levels:
 
-        if levelnum > len(self.single_file_levels):
+        if levelnum > len(self.level_lines):
             return False
 
-        self.title, rows = self.single_file_levels[levelnum-1]
+        self.title, rows = self.level_lines[levelnum-1]
         self.parse_rows(rows, C.SYMBOLS_ORIGINALS)
 
         # Use DFS to mark the interior floor as ground

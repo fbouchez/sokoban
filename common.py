@@ -1,3 +1,8 @@
+"""
+Common definitions for the whole project.
+"""
+
+
 # List of level packs available for in-game selection
 PACKS = [
       'Original.txt'
@@ -111,7 +116,7 @@ SOLVE_DELAY = 100 # milliseconds
 FLASH_DELAY = 100 # milliseconds
 
 
- # number of identical successive frames for animations
+# number of identical successive frames for animations
 FRAMES_PER_ANIM = 6
 
 # number of frames for a move: less makes character move faster but not enough

@@ -107,11 +107,24 @@ class GameInterface:
             callback=self.game.load_level
         )
 
+        self.txtTest = Text(
+            "Test (T)",
+            self.font_messages, C.BLACK, C.ALEFT, C.ABOTTOM,
+            callback=self.game.test_move
+        )
+
         # START_CUT
         self.txtVisu = Text(
             "Aide visuelle (V)",
-            self.font_messages, C.BLACK, C.ALEFT, C.ABOTTOM,
+            self.font_messages, C.BLACK, C.ALEFT, C.ACUSTOM,
+            above=self.txtTest,
             callback=self.game.toggle_visualize
+        )
+
+        self.txtHelp = Text(
+            "Aide sokoban (H) / Résolution complète (A)",
+            self.font_messages, C.BLACK, C.ACENTER, C.ABOTTOM,
+            callback=None
         )
         # END_CUT
 
@@ -126,15 +139,6 @@ class GameInterface:
             self.font_messages, C.BLACK, C.ALEFT, C.AMID,
             callback=self.game.load_prev
         )
-
-
-        # START_CUT
-        self.txtHelp = Text(
-            "Aide sokoban (H) / Résolution complète (A)",
-            self.font_messages, C.BLACK, C.ACENTER, C.ABOTTOM,
-            callback=None
-        )
-        # END_CUT
 
         self.txtMoves = Text(
             "Coups : 0",
@@ -189,6 +193,7 @@ class GameInterface:
         self.clickableTexts = [
             self.txtCancel,
             self.txtReset,
+            self.txtTest,
             # START_CUT
             self.txtVisu,
             self.txtHelp,
@@ -339,10 +344,10 @@ class Game:
         self.window = window
         self.player = None
         self.interface = None
-        self.level = self.level = Level(
+        self.level = Level(
             self,
             S.scores.current_pack,  # filename
-            single_file=True)
+        )
         self.load_textures()
         self.load_sounds()
 
