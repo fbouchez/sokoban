@@ -16,6 +16,7 @@ class Player:
         self.anim_frame_num=0
 
     def load_textures(self):
+        ss = C.CHARACTER_SPRITESIZE
         sheet = self.game.textures[C.ORIG_SPRITESIZE][C.PLAYER]
         st = []
         self.textures = {C.ORIG_SPRITESIZE: st}
@@ -31,10 +32,10 @@ class Player:
             for xoffset in range(C.SPRITE_PLAYER_NUM):
                 st[direction].append(
                         sheet.subsurface((
-                            xoffset*C.ORIG_SPRITESIZE,
-                            yoffset*C.ORIG_SPRITESIZE,
-                            C.ORIG_SPRITESIZE,
-                            C.ORIG_SPRITESIZE)))
+                            xoffset*ss,
+                            yoffset*ss+C.CHARACTER_YSTART,
+                            ss,
+                            ss)))
 
 
     def update_textures(self):

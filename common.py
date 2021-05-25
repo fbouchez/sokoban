@@ -31,9 +31,13 @@ PACKS = [
 
 ORIG_SPRITESIZE  = 32
 SPRITESIZE       = 32
-SPRITE_PLAYER_NUM = 3 # number of sprites in a player animation
+CHARACTER_SPRITESIZE = 32
+# CHARACTER_SPRITESIZE = 75
+# CHARACTER_YSTART = 230  # pixels above this rows are for whole head
+CHARACTER_YSTART = 0  # pixels above this rows are for whole head
+SPRITE_PLAYER_NUM = 3   # number of sprites in a player animation
 
-SPRITESIZES  = [16,20,24,28,32,36,40,44,48,52,56,60,64]
+SPRITESIZES  = [16,20,24,28,32,36,40,44,48,52,56,60,64] #,75]
 
 WINDOW_WIDTH  = 1024
 WINDOW_HEIGHT = 768

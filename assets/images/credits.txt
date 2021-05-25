@@ -2,3 +2,11 @@ Guillaume's tiles for sokoban:
 https://opengameart.org/content/sokoban-100-tiles 
 
 Current tiles of unknown origin: original github project did not mention that information :-(
+
+
+TODO: move to free tiles and credited tiles such as:
+Crates by SpriteAttack:
+https://opengameart.org/content/boxes-and-crates-svg-and-pngs
+
+Character by ScahachdaStalker58:
+https://www.deviantart.com/scahachdastalker58/art/Original-Character-Sarah-Leine-Updated-827021063

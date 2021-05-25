@@ -333,12 +333,15 @@ class Game:
         self.textures = {
             C.ORIG_SPRITESIZE: {
                 C.WALL: pygame.image.load(fn('wall.png')).convert_alpha(),
+                # C.BOX: pygame.image.load(fn('crate.png')).convert_alpha(),
                 C.BOX: pygame.image.load(fn('box.png')).convert_alpha(),
                 C.TARGET: ground,
                 # target overlay
                 C.TARGETOVER: pygame.image.load(fn('target.png')).convert_alpha(),
+                # C.TARGET_FILLED: pygame.image.load(fn('crate_correct.png')).convert_alpha(),
                 C.TARGET_FILLED: pygame.image.load(fn('box_correct.png')).convert_alpha(),
                 C.PLAYER: pygame.image.load(fn('player_sprites.png')).convert_alpha(),
+                # C.PLAYER: pygame.image.load(fn('character-female-knight.png')).convert_alpha(),
                 C.GROUND: ground}}
 
         def surfhigh(size, color, alpha):
@@ -459,8 +462,20 @@ class Game:
             max_width / self.level.width)
 
         # print ('could use sprite size', max_sprite_size)
-        sp = int(max_sprite_size / 4)*4
-        sp = max(min(sp, 64), 16)
+        minss = C.SPRITESIZES[0]
+        maxss = C.SPRITESIZES[-1]
+
+        if max_sprite_size < minss:
+            sp = minss
+        elif max_sprite_size > maxss:
+            sp = maxss
+        else:
+            sp = minss
+            for size in C.SPRITESIZES:
+                if size > max_sprite_size:
+                    break
+                sp = size
+
         verbose('will use sprite size', sp)
         C.SPRITESIZE = sp
 
@@ -719,6 +734,9 @@ class Game:
             return False
 
         elif event.type == VIDEORESIZE:
+            if pygame.event.peek(eventtype=VIDEORESIZE):
+                return False
+
             w,h = event.dict['size']
             C.WINDOW_WIDTH = w
             C.WINDOW_HEIGHT = h
