@@ -43,8 +43,11 @@ def horizontal(d):
     return d == C.LEFT or d == C.RIGHT
 
 
-# check if element is last of an iterator
 def islast(o):
+    """
+    Get an element from an iterator with a boolean value stating whether it is 
+    the last element or not.
+    """
     it = o.__iter__()
     e = it.__next__()
     while True:
@@ -58,7 +61,7 @@ def islast(o):
 
 def valid_soko_line(l):
     """
-    A valid Sokoban level contains only spaces until a wall '#'
+    A valid Sokoban level line contains only spaces until a wall '#'
     """
     h = l.find('#')
     if h == -1:

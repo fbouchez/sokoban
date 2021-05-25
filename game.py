@@ -50,11 +50,11 @@ class GameInterface:
         self.game = game
         self.level = None
         self.mouse_pos = (-1,-1)
-        self.font_messages = pygame.font.Font(os.path.join('assets','fonts','FreeSansBold.ttf'), 18)
-        self.font_win  = pygame.font.Font(os.path.join('assets','fonts','FreeSansBold.ttf'), 32)
-        self.is_lost=False
-        self.has_info=False
-        self.is_solving=False
+        self.font_messages = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 18)
+        self.font_win = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 32)
+        self.is_lost = False
+        self.has_info = False
+        self.is_solving = False
         self.load_assets()
 
     def set_level(self, level, level_num, title=None):
@@ -147,48 +147,44 @@ class GameInterface:
 
         self.ymessages=210
 
-        self.txtPress = Text ("(appuyez sur une touche pour continuer)",
+        self.txtPress = Text("(appuyez sur une touche pour continuer)",
                 self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
                 callback=None)
         self.txtPress.set_pos(below=self.txtWin)
 
-        self.txtLost = Text ("Résolution impossible (certaines boîtes sont définitivement coincées)",
+        self.txtLost = Text("Résolution impossible (certaines boîtes sont définitivement coincées)",
                 self.font_messages, C.RED, C.ACENTER, C.ACUSTOM,
                 yfun=self.compute_ymessages,
                 callback=None)
 
-        self.txtResol = Text ("Résolution en cours (Esc pour annuler)",
+        self.txtResol = Text("Résolution en cours (Esc pour annuler)",
                 self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
                 yfun=lambda: self.compute_ymessages() - 30,
                 callback=None)
 
 
-        self.txtInfo = Text (" ",
-                self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
-                yfun=self.compute_ymessages,
-                callback=None)
-
+        self.txtInfo = Text (
+            " ",
+            self.font_messages, C.BLACK, C.ACENTER, C.ACUSTOM,
+            yfun=self.compute_ymessages,
+            callback=None
+        )
 
         self.clickableTexts = [
-                self.txtCancel,
-                self.txtReset,
-                self.txtVisu,
-                self.txtHelp,
-                self.txtNext,
-                self.txtPrev,
-                ]
+            self.txtCancel,
+            self.txtReset,
+            self.txtVisu,
+            self.txtHelp,
+            self.txtNext,
+            self.txtPrev,
+        ]
 
-        self.all_texts = self.clickableTexts + \
-                [
-                self.txtPack,
-                self.txtLevel,
-                self.txtMoves,
-                self.txtBestMoves,
-                self.txtPress,
-                self.txtInfo,
-                self.txtResol,
-                self.txtLost
-                ]
+        self.allways_texts = [
+            self.txtPack,
+            self.txtLevel,
+            self.txtTitle,
+            self.txtBestMoves,
+        ] + self.clickableTexts
 
     def compute_ymessages(self):
         return C.WINDOW_HEIGHT - 80
@@ -285,25 +281,22 @@ class GameInterface:
 
     def render(self, window, level_num, level):
 
-        self.txtPack.render(window)
-        self.txtLevel.render(window)
-        self.txtTitle.render(window)
-        self.txtNext.render(window)
-        self.txtPrev.render(window)
-        self.txtMoves.render(window, "Coups : " + str(level.num_moves))
-        self.txtBestMoves.render(window)
-        self.txtCancel.render(window)
-        self.txtReset.render(window)
-        self.txtVisu.render(window)
-        self.txtHelp.render(window)
-        if self.is_lost:
-            self.txtLost.render(window)
+        for t in self.always_texts:
+            t.render(window)
 
+        # Text that needs to be updated first
+        self.txtMoves.render(window, "Coups : " + str(level.num_moves))
+
+        # Text that is not always present
         if self.has_info:
             self.txtInfo.render(window)
+
+# STARD_CUT
+        if self.is_lost:
+            self.txtLost.render(window)
         if self.is_solving:
             self.txtResol.render(window)
-
+# END_CUT
 
 
 class Game:
@@ -372,10 +365,10 @@ class Game:
 
         # small surfaces to draw attention to a particular tile of the board
         # e.g., to highlight a tile
-        surfAtt = lambda s: surfhigh(s,(0,255,0),50) # green highlight, for attainable tiles
-        surfSucc = lambda s: surfhigh(s,(0,0,255),50) # blue highlight,  to show successors of boxes
-        surfSelect = lambda s: surfhigh(s,(255,255,0),200) # yellow highlight, to show selection
-        surfError = lambda s: surfhigh(s,(255,0,0),200) # red highlight, in case of an error
+        surfAtt = lambda s: surfhigh(s, (0,255,0),50) # green highlight, for attainable tiles
+        surfSucc = lambda s: surfhigh(s, (0,0,255),50) # blue highlight,  to show successors of boxes
+        surfSelect = lambda s: surfhigh(s, (255,255,0),200) # yellow highlight, to show selection
+        surfError = lambda s: surfhigh(s, (255,0,0),200) # red highlight, in case of an error
 
         self.highlights = {}
         for s in C.SPRITESIZES:
@@ -610,8 +603,8 @@ class Game:
         if not path: return
 
         # speed up movement
-        save_anim=C.MOVE_FRAMES
-        C.MOVE_FRAMES=1
+        save_anim = C.MOVE_FRAMES
+        C.MOVE_FRAMES = 1
 
         for d in path:
             # simulate key presses
@@ -622,7 +615,7 @@ class Game:
             pygame.time.wait(C.MOVE_DELAY)
 
         # restore movement speed
-        C.MOVE_FRAMES=save_anim
+        C.MOVE_FRAMES = save_anim
 
 
     def animate_move_boxes(self, path, skip_last=False, fast=True):
@@ -631,12 +624,12 @@ class Game:
         """
         self.level.invalidate()
 
-        save_anim=C.MOVE_FRAMES
-        C.MOVE_FRAMES=4
+        save_anim = C.MOVE_FRAMES
+        C.MOVE_FRAMES = 4
 
-        for last,(box,d) in islast(path):
+        for last, (box, d) in islast(path):
 
-            verbose ("now path is push", box, "from", C.DNAMES[d])
+            verbose("now path is push", box, "from", C.DNAMES[d])
             pos = self.level.side_box(box, d)
 
             # move character to the side of the box
@@ -653,7 +646,7 @@ class Game:
             # new box position
             box = self.level.side_box(box, oppd)
 
-        C.MOVE_FRAMES=save_anim
+        C.MOVE_FRAMES = save_anim
 
         # check if last push triggered a win condition
         if self.level.has_win():
@@ -671,7 +664,7 @@ class Game:
             self.interface.deactivate_cancel()
         lost = self.level.lost_state()
         if lost:
-            verbose ("Still lost state !")
+            verbose("Still lost state !")
         self.interface.set_lost_state(lost)
 
 
@@ -723,18 +716,21 @@ class Game:
                 self.interface.set_solving(True, num=0)
                 found, message, path = self.level.solve_all_boxes()
                 if not found:
-                    self.interface.set_solving(True,
-                            message=message,
-                            error=True
-                            )
+                    self.interface.set_solving(
+                        True,
+                        message=message,
+                        error=True
+                    )
                     self.interface.flash_screen()
                     self.update_screen()
                     self.wait_key()
 
                 else:
-                    self.interface.set_solving(True,
-                            message=message,
-                            error=False)
+                    self.interface.set_solving(
+                        True,
+                        message=message,
+                        error=False
+                    )
                     self.interface.flash_screen(color=C.GREEN)
                     self.wait_key()
                     self.animate_move_boxes(path, skip_last=True, fast=False)
@@ -759,13 +755,14 @@ class Game:
             if pygame.event.peek(eventtype=VIDEORESIZE):
                 return False
 
-            w,h = event.dict['size']
+            w, h = event.dict['size']
             C.WINDOW_WIDTH = w
             C.WINDOW_HEIGHT = h
 
             # need to recreate the window although the doc says it should be 
             # automatically updated
-            self.window = pygame.display.set_mode((C.WINDOW_WIDTH, C.WINDOW_HEIGHT),RESIZABLE)
+            self.window = pygame.display.set_mode(
+                (C.WINDOW_WIDTH, C.WINDOW_HEIGHT), RESIZABLE)
             self.create_board()
             self.update_textures()
             self.player.update_textures()
@@ -856,7 +853,7 @@ class Game:
                     # or if position is lost...
                     lost = self.level.lost_state()
                     if lost:
-                        verbose ("Lost state !")
+                        verbose("Lost state !")
                     self.interface.set_lost_state(lost)
 
                 # key not pressed anymore and finished arriving on the tile
@@ -879,7 +876,7 @@ class Game:
         if is_win:
             self.level_win()
 
-    def click_pos (self, position):
+    def click_pos(self, position):
         if self.selected_position:
             postype, selpos = self.selected_position
 
@@ -892,15 +889,16 @@ class Game:
                 # now try to move the box
                 if position == selpos:
                     # same position: auto solving this box to a target
-                    found,message,path = self.level.solve_one_box(selpos)
+                    found, message, path = self.level.solve_one_box(selpos)
                 else:
                     # different position: move the box to this area
-                    found,message,path = self.level.move_one_box(selpos, position)
+                    found, message, path = self.level.move_one_box(selpos, position)
 
-                self.interface.set_solving(True,
-                        message=message,
-                        error=not found
-                    )
+                self.interface.set_solving(
+                    True,
+                    message=message,
+                    error=not found
+                )
 
                 if not path:
                     self.interface.flash_screen(selpos)
@@ -911,7 +909,7 @@ class Game:
 
             else:
                 # now we should only select boxes
-                assert(false)
+                assert false
             return
 
         # nothing selected yet
@@ -957,7 +955,7 @@ class Game:
         self.player.render(self.board, self.textures[C.ORIG_SPRITESIZE])
 
         if self.has_changed:
-            self.has_changed=False
+            self.has_changed = False
             if self.visual:
                 self.level.update_visual()
 

@@ -58,7 +58,6 @@ class GenericMenu:
 
         if event.type == VIDEORESIZE:
             if pygame.event.peek(eventtype=VIDEORESIZE):
-                print ("Resize on the event queue!")
                 return None
 
             w, h = event.dict['size']

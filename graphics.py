@@ -7,8 +7,6 @@ from pygame.locals import *
 import common as C
 from utils import *
 
-BORDER = 10
-
 class Text:
     """
     Class for a text displayed on screen.
@@ -50,22 +48,22 @@ class Text:
             self.make_surface(self.text)
 
         if self.xalign == C.ALEFT:
-            xpos = BORDER
+            xpos = C.BORDER
         elif self.xalign == C.ACENTER:
             xpos= C.WINDOW_WIDTH // 2 - self.surf.get_width() // 2
         elif self.xalign == C.ARIGHT:
-            xpos= C.WINDOW_WIDTH - self.surf.get_width() - BORDER
+            xpos= C.WINDOW_WIDTH - self.surf.get_width() - C.BORDER
         elif self.xalign == C.ACUSTOM:
             xpos=self.pos[0]
         else:
             raise ValueError("Horizontal alignment")
 
         if self.yalign == C.ATOP:
-            ypos = BORDER
+            ypos = C.BORDER
         elif self.yalign == C.AMID:
             ypos= C.WINDOW_HEIGHT // 2 - self.surf.get_height() // 2
         elif self.yalign == C.ABOTTOM:
-            ypos= C.WINDOW_HEIGHT - self.surf.get_height() - BORDER
+            ypos= C.WINDOW_HEIGHT - self.surf.get_height() - C.BORDER
         elif self.yalign == C.ACUSTOM:
             self.set_pos(
                     below=self.below,
@@ -83,9 +81,9 @@ class Text:
         if y is None:
             y = self.pos[1]
         if below is not None:
-            y = below.pos[1] + below.surf.get_height()+BORDER
+            y = below.pos[1] + below.surf.get_height()+C.BORDER
         elif above is not None:
-            y = above.pos[1] - self.surf.get_height()-BORDER
+            y = above.pos[1] - self.surf.get_height()-C.BORDER
         elif self.yfun is not None:
             y = self.yfun()
 
