@@ -10,13 +10,25 @@ import os
 # Hide welcome message from pygame
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
+import time
 import pygame
 from pygame.locals import *
 import common as C
 from utils import *
 from game import Game
 from interface import Menu
-import time
+import scores
+
+def display_help():
+    print("Usage: ./Sokoban.py [-h] [-v] [--no-sound]")
+    print("List of options:")
+    print("    --help")
+    print("    -h  display this help message")
+    print("    --verbose")
+    print("    -v  verbose mode")
+    print("    --no-sound")
+    print("        disable sound effects")
+
 
 def parse_options():
     for o in sys.argv:
@@ -24,66 +36,17 @@ def parse_options():
             set_verbose()
         elif o == "--no-sound":
             C.WITH_SOUND = False
-
-
-
-
-def general_menu(window):
-    # Game menu
-    menu = Menu(window)
-
-    while True:
-        # Check user inputs (mouse or keyboard)
-        event = pygame.event.wait()
-        if event.type == QUIT:
-            # window was closed
-            break
-
-        elif event.type == KEYDOWN:
-            # keyboard interactions
-            if event.key == K_n:
-                new_game(window)
-            elif event.key == K_c:
-                continue_game(window)
-            elif event.key == K_p:
-                choose_pack(window)
-            elif event.key == K_ESCAPE or event.key == K_q:
-                break
-
-        elif event.type == MOUSEBUTTONDOWN:
-            # mouse interactions
-            if menu.click(event.pos):
-                if menu.quit:
-                    return
-                elif menu.new_game:
-                    new_game(window)
-                elif menu.continue_game:
-                    continue_game(window)
-                else:
-                    raise ValueError("Click problem on menu")
-        elif event.type == VIDEORESIZE:
-            w, h = event.dict['size']
-            C.WINDOW_WIDTH = w
-            C.WINDOW_HEIGHT = h
-            window = pygame.display.set_mode(
-                (C.WINDOW_WIDTH, C.WINDOW_HEIGHT),
-                RESIZABLE)
-
-        # else:
-            # print('uncatched event:', event)
-
-        # Redraws menu, as a game might have been played
-        window.fill(C.WHITE)
-        menu.render(window)
-        pygame.display.flip()
-
-
-
+        elif o == "-h" or o == "--help":
+            display_help()
+            exit(0)
 
 def main():
 
     parse_options()
     verbose("Verbose mode activated") # will only print if option was set
+
+    # read scores and current pack / last level information
+    scores.load_scores()
 
     if C.WITH_SOUND:
         pygame.mixer.pre_init(44100, 16, 2, 4096) # setup mixer to avoid sound lag
