@@ -1,3 +1,4 @@
+# List of level packs available for in-game selection
 PACKS = [
       'Original.txt'
     , 'Minicosmos.txt'
@@ -42,15 +43,16 @@ SND_WOODFRIC_NUM = 5
 
 
 # Text alignment
-#vertical
-ATOP = 0
-AMID = 1
+# vertical
+ATOP    = 0
+AMID    = 1
 ABOTTOM = 2
-#horizontal
-ALEFT=3
-ACENTER=4
-ARIGHT=5
-ACUSTOM=6
+# horizontal
+ALEFT   = 3
+ACENTER = 4
+ARIGHT  = 5
+# horizontal or vertical
+ACUSTOM = 6
 
 
 
@@ -67,9 +69,6 @@ PLAYER_ON_TARGET= 8
 TARGETOVER      = 9 # just for the texture overlay
 
 SYMBOLS_ORIGINALS = ['','#','$','.','*','@',' ','','+']
-SYMBOLS_MODERN    = ['','X','*','.','&','@',' ','','+']
-
-
 
 UP      = 0
 DOWN    = 1

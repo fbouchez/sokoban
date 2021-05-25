@@ -1,3 +1,11 @@
+"""
+Handles the reading of levels from pack files,
+as well as the state of the level when playing the game
+- map of whole level: floor, walls, targets
+- player position
+- position of boxes
+"""
+
 import os
 import pygame
 import common as C
@@ -6,6 +14,10 @@ from explore import *
 from utils import *
 
 class Level:
+    """
+    Store the internal state of a level
+    """
+
     def __init__(self, game, filename, single_file=True):
         self.game=game
         self.num_moves = 0
@@ -97,21 +109,6 @@ class Level:
         verbose (self.boxes)
 
 
-
-    def load_file_by_file(self, levelnum, nextlevel=False):
-        """
-        Deprecated, levels are now handled as packs in a single file.
-        Should not be used anymore
-        """
-        try:
-            with open(os.path.join('assets','levels',"level_" + str(levelnum) + ".txt")) as level_file:
-                rows = level_file.read.splitlines()
-            self.parse_rows(rows, C.SYMBOLS_MODERN)
-            return True
-        except FileNotFoundError:
-            return False
-
-
     def load_file(self):
         """
         Load a pack of sokoban levels.
@@ -158,17 +155,13 @@ class Level:
 
     def load(self, levelnum):
         self.loaded=False
-        if self.single_file_levels:
+        assert self.single_file_levels:
 
-            if levelnum > len(self.single_file_levels):
-                return False
+        if levelnum > len(self.single_file_levels):
+            return False
 
-            self.title, rows = self.single_file_levels[levelnum-1]
-            self.parse_rows(rows, C.SYMBOLS_ORIGINALS)
-        else:
-            ret = self.load_file_by_file(levelnum=levelnum)
-            if not ret:
-                return False
+        self.title, rows = self.single_file_levels[levelnum-1]
+        self.parse_rows(rows, C.SYMBOLS_ORIGINALS)
 
         # Use DFS to mark the interior floor as ground
         dfs = DFS(self)
@@ -206,6 +199,9 @@ class Level:
         for x,y in positions:
             self.mhighlight[y][x] = htype
 
+
+    # Some helper functions to check the state of a tile
+
     def has_box (self, pos):
         x,y = pos
         return self.mboxes[y][x]
@@ -225,14 +221,19 @@ class Level:
     def is_empty (self, pos):
         return self.is_floor(pos) and not self.has_box(pos)
 
+# START_CUT
     def is_dead (self, pos):
         x,y = pos
         return self.dead[y][x]
 
-
-
     def lost_state(self, mboxes=None, boxlist=None):
-        # print ("nothing special")
+        """
+        Some heuristics to determine if the level is now in an
+        unsolvable state:
+        - box along a unescapable wall without target
+        - boxes forming a square
+        - in general, box that can no longer reach any target
+        """
         if mboxes is None:
             mboxes = self.mboxes
         if boxlist is None:
@@ -287,14 +288,14 @@ class Level:
 
 
         return False
-
+# END_CUT
 
 
     def get_current_state(self):
-        return { 'mboxes': deepcopy(self.mboxes),
-                 'player': self.player_position,
-                 'moves' : self.num_moves
-                 }
+        return {'mboxes': deepcopy(self.mboxes),
+                'player': self.player_position,
+                'moves' : self.num_moves,
+                }
 
     def restore_state(self, state):
         self.mboxes = state['mboxes']
@@ -310,6 +311,14 @@ class Level:
 
 
     def move_player (self, direction):
+        """
+        Update the internal state of the level after a player movement:
+        position of the player and maybe a box has been moved.
+        Return value:
+        - ST_MOVING if the player is moving without pushing a box
+        - ST_PUSHING if the payer is moving and pushing a box
+        - ST_IDLE if the player is not moving (the move was illegal)
+        """
         x,y = self.player_position
         move_x, move_y = direction
 
