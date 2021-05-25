@@ -1,8 +1,12 @@
+"""
+The bulk of the game
+"""
+
 import pygame
 import sys
 import os
 from pygame.locals import *
-import constants as SOKOBAN
+import common as C
 from level import *
 from explore import *
 from player import *
@@ -13,15 +17,15 @@ from random import randrange
 
 KEYDIR = {
         # regular arrow keys
-        K_UP: SOKOBAN.UP,
-        K_DOWN: SOKOBAN.DOWN,
-        K_LEFT: SOKOBAN.LEFT,
-        K_RIGHT: SOKOBAN.RIGHT,
+        K_UP: C.UP,
+        K_DOWN: C.DOWN,
+        K_LEFT: C.LEFT,
+        K_RIGHT: C.RIGHT,
         # classical on Azerty keyboard
-        K_z: SOKOBAN.UP,
-        K_s: SOKOBAN.DOWN,
-        K_q: SOKOBAN.LEFT,
-        K_d: SOKOBAN.RIGHT
+        K_z: C.UP,
+        K_s: C.DOWN,
+        K_q: C.LEFT,
+        K_d: C.RIGHT
 }
 
 # keyboard keys corresponding to move directions
@@ -42,7 +46,7 @@ class Game:
     or from movements discovered using the Artificial Intelligence.
     Arguments:
     - window: where to draw things
-    - continueGame: whether to continue from last saved level (from the 
+    - continueGame: whether to continue from last saved level (from the
       'scores' file) or to restart at level 1.
 
     """
@@ -51,10 +55,10 @@ class Game:
         self.player = None
         self.interface = None
         self.scores = Scores(self)
-        self.level = self.level = Level(self, 
-                self.scores.current_pack, # filename
-                single_file=True
-                )
+        self.level = self.level = Level(
+            self,
+            self.scores.current_pack, # filename
+            single_file=True)
         self.load_textures()
         self.load_sounds()
 
@@ -68,7 +72,7 @@ class Game:
         self.visual = False
         self.has_changed = False
         self.selected_position = None
-        self.origin_board = (0,0)
+        self.origin_board = (0, 0)
 
 
     def load_textures(self):
@@ -82,20 +86,17 @@ class Game:
         ground = pygame.image.load(fn('stoneCenter.png')).convert_alpha()
 
         self.textures = {
-                SOKOBAN.ORIG_SPRITESIZE:
-        {
-            SOKOBAN.WALL: pygame.image.load(fn('wall.png')).convert_alpha(),
-            SOKOBAN.BOX: pygame.image.load(fn('box.png')).convert_alpha(),
-            SOKOBAN.TARGET: ground,
-            # target overlay
-            SOKOBAN.TARGETOVER: pygame.image.load(fn('target.png')).convert_alpha(),
-            SOKOBAN.TARGET_FILLED: pygame.image.load(fn('box_correct.png')).convert_alpha(),
-            SOKOBAN.PLAYER: pygame.image.load(fn('player_sprites.png')).convert_alpha(),
-            SOKOBAN.GROUND: ground
-        }
-        }
+            C.ORIG_SPRITESIZE: {
+                C.WALL: pygame.image.load(fn('wall.png')).convert_alpha(),
+                C.BOX: pygame.image.load(fn('box.png')).convert_alpha(),
+                C.TARGET: ground,
+                # target overlay
+                C.TARGETOVER: pygame.image.load(fn('target.png')).convert_alpha(),
+                C.TARGET_FILLED: pygame.image.load(fn('box_correct.png')).convert_alpha(),
+                C.PLAYER: pygame.image.load(fn('player_sprites.png')).convert_alpha(),
+                C.GROUND: ground}}
 
-        def surfhigh (size, color, alpha):
+        def surfhigh(size, color, alpha):
             surf = pygame.Surface((size, size))
             surf.set_alpha(alpha)
             surf.fill(color) # green highlight
@@ -103,19 +104,19 @@ class Game:
 
         # small surfaces to draw attention to a particular tile of the board
         # e.g., to highlight a tile
-        surfAtt  = lambda s: surfhigh(s,(0,255,0),50) # green highlight, for attainable tiles
+        surfAtt = lambda s: surfhigh(s,(0,255,0),50) # green highlight, for attainable tiles
         surfSucc = lambda s: surfhigh(s,(0,0,255),50) # blue highlight,  to show successors of boxes
-        surfSelect= lambda s: surfhigh(s,(255,255,0),200) # yellow highlight, to show selection
+        surfSelect = lambda s: surfhigh(s,(255,255,0),200) # yellow highlight, to show selection
         surfError = lambda s: surfhigh(s,(255,0,0),200) # red highlight, in case of an error
 
         self.highlights = {}
-        for s in SOKOBAN.SPRITESIZES:
+        for s in C.SPRITESIZES:
             self.highlights[s] = {
-                    SOKOBAN.HATT:   surfAtt(s),
-                    SOKOBAN.HSUCC:  surfSucc(s),
-                    SOKOBAN.HSELECT:surfSelect(s),
-                    SOKOBAN.HERROR :surfError(s),
-                    }
+                C.HATT:   surfAtt(s),
+                C.HSUCC:  surfSucc(s),
+                C.HSELECT:surfSelect(s),
+                C.HERROR :surfError(s)
+                }
 
     def load_sounds(self):
         """
@@ -124,13 +125,13 @@ class Game:
         - wood friction when pushing a box
         - jingle win when a level is finished
         """
-        if not SOKOBAN.WITH_SOUND: return
+        if not C.WITH_SOUND: return
 
         def fn(f):
             return os.path.join('assets', 'sounds', f)
 
-        def ld(template,lst,num,volume):
-            for i in range (num):
+        def ld(template, lst, num, volume):
+            for i in range(num):
                 f = fn(template.format(i))
                 snd = pygame.mixer.Sound(f)
                 snd.set_volume(volume)
@@ -138,11 +139,11 @@ class Game:
 
         self.sndFootstep = []
         filetemplate = 'footstep-dirt-{:02d}.wav'
-        ld(filetemplate, self.sndFootstep, SOKOBAN.SND_FOOTSTEP_NUM, .3)
+        ld(filetemplate, self.sndFootstep, C.SND_FOOTSTEP_NUM, .3)
 
         self.sndWoodpush = []
         filetemplate = 'wood-friction-{:02d}.wav'
-        ld(filetemplate, self.sndWoodpush, SOKOBAN.SND_WOODFRIC_NUM, .8)
+        ld(filetemplate, self.sndWoodpush, C.SND_WOODFRIC_NUM, .8)
 
         self.footstep_idx = -1
         self.woodpush_idx = -1
@@ -170,20 +171,20 @@ class Game:
 
         if not self.level.loaded:
             ## We tried to load past the last available level
-            print ("Plus de niveau disponible")
+            print("Plus de niveau disponible")
             self.interface.display_info("Plus de niveau disponible", error=True)
             self.interface.txtInfo.render(self.window)
             self.wait_key(update=False)
             return False
 
-        assert(self.interface)
+        assert self.interface
 
         self.playing = True
         # connect interface to level
         self.interface.set_level(
-                self.level,
-                self.index_level,
-                self.level.title)
+            self.level,
+            self.index_level,
+            self.level.title)
 
         self.create_board()
 
@@ -205,48 +206,47 @@ class Game:
 
     def create_board(self):
         # determine size of level on screen
-        max_height = SOKOBAN.WINDOW_HEIGHT - 120
-        max_width  = SOKOBAN.WINDOW_WIDTH - 2*BORDER
+        max_height = C.WINDOW_HEIGHT - 120
+        max_width = C.WINDOW_WIDTH - 2*BORDER
 
         max_sprite_size = min(
-                max_height / self.level.height,
-                max_width / self.level.width
-                )
+            max_height / self.level.height,
+            max_width / self.level.width)
 
         # print ('could use sprite size', max_sprite_size)
         sp = int(max_sprite_size / 4)*4
         sp = max(min(sp, 64), 16)
-        verbose ('will use sprite size', sp)
-        SOKOBAN.SPRITESIZE = sp
+        verbose('will use sprite size', sp)
+        C.SPRITESIZE = sp
 
         # space to draw the level
         self.board = pygame.Surface((
-            self.level.width * SOKOBAN.SPRITESIZE,
-            self.level.height * SOKOBAN.SPRITESIZE))
+            self.level.width * C.SPRITESIZE,
+            self.level.height * C.SPRITESIZE))
 
 
     def update_textures(self):
-        if SOKOBAN.SPRITESIZE not in self.textures:
-            sp = SOKOBAN.SPRITESIZE
+        if C.SPRITESIZE not in self.textures:
+            sp = C.SPRITESIZE
             self.textures[sp] = {}
-            for key, texture in self.textures[SOKOBAN.ORIG_SPRITESIZE].items():
+            for key, texture in self.textures[C.ORIG_SPRITESIZE].items():
                 sc = pygame.transform.smoothscale(texture, (sp, sp))
                 self.textures[sp][key] = sc
 
 
     def sound_play_footstep(self):
-        if not SOKOBAN.WITH_SOUND: return
+        if not C.WITH_SOUND: return
         if self.channelFootsteps is not None:
             if self.channelFootsteps.get_busy():
                 return
         # self.footstep_idx += 1
-        # self.footstep_idx %= SOKOBAN.SND_FOOTSTEPNUM
-        self.footstep_idx = randrange(SOKOBAN.SND_FOOTSTEP_NUM)
+        # self.footstep_idx %= C.SND_FOOTSTEPNUM
+        self.footstep_idx = randrange(C.SND_FOOTSTEP_NUM)
         self.channelFootsteps = self.sndFootstep[self.footstep_idx].play()
 
 
     def sound_play_pushing(self):
-        if not SOKOBAN.WITH_SOUND: return
+        if not C.WITH_SOUND: return
         # check if previous sound is still playing
         if self.channelPushing is not None:
             if self.channelPushing.get_busy():
@@ -254,12 +254,12 @@ class Game:
 
         # self.channelPushing = self.sndPushing.play() #0,1000)
 #
-        self.woodpush_idx = randrange(SOKOBAN.SND_WOODFRIC_NUM)
+        self.woodpush_idx = randrange(C.SND_WOODFRIC_NUM)
         self.channelPushing = self.sndWoodpush[self.woodpush_idx].play()
 
 
     def sound_play_win(self):
-        if not SOKOBAN.WITH_SOUND: return
+        if not C.WITH_SOUND: return
         self.sndWin.play()
 
 
@@ -308,7 +308,7 @@ class Game:
         - mark SUCC the position where a box can be pushed
         """
         self.has_changed = True
-        self.visual = not(self.visual)
+        self.visual = not self.visual
         if not self.visual:
             # disable highlighted tiles if going out of visual aid
             self.level.reset_highlight()
@@ -333,7 +333,7 @@ class Game:
             self.move_player(key)
 
             self.update_screen()
-            pygame.time.wait(SOKOBAN.MOVE_DELAY)
+            pygame.time.wait(C.MOVE_DELAY)
 
         # restore movement speed
         S.MOVE_FRAMES=save_anim
@@ -345,17 +345,17 @@ class Game:
         """
         self.level.invalidate()
 
-        save_anim=SOKOBAN.MOVE_FRAMES
-        SOKOBAN.MOVE_FRAMES=4
+        save_anim=C.MOVE_FRAMES
+        C.MOVE_FRAMES=4
 
         for last,(box,d) in islast(path):
 
-            verbose ("now path is push", box, "from", SOKOBAN.DNAMES[d])
+            verbose ("now path is push", box, "from", C.DNAMES[d])
             pos = self.level.side_box(box, d)
 
             # move character to the side of the box
             self.animate_move_to(pos)
-            oppd = SOKOBAN.OPPOSITE[d]
+            oppd = C.OPPOSITE[d]
 
             # now push dthe box
             if not skip_last or not last:
@@ -367,7 +367,7 @@ class Game:
             # new box position
             box = self.level.side_box(box, oppd)
 
-        SOKOBAN.MOVE_FRAMES=save_anim
+        C.MOVE_FRAMES=save_anim
 
         # check if last push triggered a win condition
         if self.level.has_win():
@@ -441,7 +441,7 @@ class Game:
             # "all box solve" key
             elif event.key == K_a:
                 self.interface.set_solving(True, num=0)
-                found,message,path = self.level.solve_all_boxes()
+                found, message, path = self.level.solve_all_boxes()
                 if not found:
                     self.interface.set_solving(True,
                             message=message,
@@ -455,7 +455,7 @@ class Game:
                     self.interface.set_solving(True,
                             message=message,
                             error=False)
-                    self.interface.flash_screen(color=SOKOBAN.GREEN)
+                    self.interface.flash_screen(color=C.GREEN)
                     self.wait_key()
                     self.animate_move_boxes(path, skip_last=True, fast=False)
 
@@ -475,12 +475,12 @@ class Game:
 
         elif event.type == VIDEORESIZE:
             w,h = event.dict['size']
-            SOKOBAN.WINDOW_WIDTH = w
-            SOKOBAN.WINDOW_HEIGHT = h
+            C.WINDOW_WIDTH = w
+            C.WINDOW_HEIGHT = h
 
             # need to recreate the window although the doc says it should be 
             # automatically updated
-            self.window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT),RESIZABLE)
+            self.window = pygame.display.set_mode((C.WINDOW_WIDTH, C.WINDOW_HEIGHT),RESIZABLE)
             self.create_board()
             self.update_textures()
             self.player.update_textures()
@@ -508,7 +508,7 @@ class Game:
             self.interface.activate_cancel()
 
         # move failed (e.g., character against a wall)
-        if status == SOKOBAN.ST_IDLE:
+        if status == C.ST_IDLE:
             return
 
         # keep previous status to check if there is a win (only when status was 
@@ -523,13 +523,13 @@ class Game:
 
         is_win = False
         while True:
-            if status == SOKOBAN.ST_PUSHING:
+            if status == C.ST_PUSHING:
                 self.sound_play_pushing()
             else:
                 self.sound_play_footstep()
 
             # slows loop to target FPS
-            t = self.clock.tick(SOKOBAN.TARGET_FPS)
+            t = self.clock.tick(C.TARGET_FPS)
 
             # if not stop_next_tile:
             # discard all events but:
@@ -598,7 +598,7 @@ class Game:
         if self.selected_position:
             postype, selpos = self.selected_position
 
-            if postype == SOKOBAN.BOX:
+            if postype == C.BOX:
                 self.cancel_selected()
 
                 # solving for only one box
@@ -632,8 +632,8 @@ class Game:
         # nothing selected yet
         if self.level.has_box(position):
             # selecting a box
-            self.selected_position = (SOKOBAN.BOX, position)
-            self.level.highlight([position], SOKOBAN.HSELECT)
+            self.selected_position = (C.BOX, position)
+            self.level.highlight([position], C.HSELECT)
         else:
             # trying to move the character
             self.animate_move_to(position)
@@ -665,19 +665,19 @@ class Game:
 
     def update_screen(self, flip=True):
         # clear screen
-        self.window.fill(SOKOBAN.WHITE)
-        self.board.fill(SOKOBAN.WHITE)
+        self.window.fill(C.WHITE)
+        self.board.fill(C.WHITE)
 
-        self.level.render(self.board, self.textures[SOKOBAN.SPRITESIZE], self.highlights)
-        self.player.render(self.board, self.textures[SOKOBAN.ORIG_SPRITESIZE])
+        self.level.render(self.board, self.textures[C.SPRITESIZE], self.highlights)
+        self.player.render(self.board, self.textures[C.ORIG_SPRITESIZE])
 
         if self.has_changed:
             self.has_changed=False
             if self.visual:
                 self.level.update_visual()
 
-        pos_x_board = (SOKOBAN.WINDOW_WIDTH // 2) - (self.board.get_width() // 2)
-        pos_y_board = (SOKOBAN.WINDOW_HEIGHT // 2) - (self.board.get_height() // 2)
+        pos_x_board = (C.WINDOW_WIDTH // 2) - (self.board.get_width() // 2)
+        pos_y_board = (C.WINDOW_HEIGHT // 2) - (self.board.get_height() // 2)
         self.origin_board = (pos_x_board, pos_y_board)
         self.window.blit(self.board, self.origin_board)
 
@@ -699,7 +699,5 @@ class Game:
 
     def debug(self):
         self.update_screen()
-        print ("Waiting for keypress...")
+        print("Waiting for keypress...")
         self.wait_key()
-
-

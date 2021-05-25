@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-#
-# Yet another Sokoban clone
-#
+"""
+
+ Yet another Sokoban clone
+
+"""
 
 import sys
 import os
@@ -10,7 +12,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 import pygame
 from pygame.locals import *
-import constants as SOKOBAN
+import common as C
 from utils import *
 from game import Game
 from interface import Menu
@@ -21,41 +23,14 @@ def parse_options():
         if o == "-v" or o == "--verbose":
             set_verbose()
         elif o == "--no-sound":
-            SOKOBAN.WITH_SOUND = False
+            C.WITH_SOUND = False
 
 
-def new_game(window):
-    sokoban = Game(window, continueGame = False)
-    sokoban.start()
 
-def continue_game(window):
-    sokoban = Game(window, continueGame = True)
-    sokoban.start()
 
-def choose_pack(window):
+def general_menu(window):
     # Game menu
-    cpack = PackChoice()
-    cpack.render()
-
-def main():
-
-    parse_options()
-    verbose("Verbose mode activated") # will only print if option was set
-
-    if SOKOBAN.WITH_SOUND:
-        pygame.mixer.pre_init(44100, 16, 2, 4096) # setup mixer to avoid sound lag
-
-    # Window creation
-    pygame.init()
-
-    # now continuing is handled via keyup instead of repetition
-    # still keeping repetition to allow for fast cancels
-    pygame.key.set_repeat(100, 60)
-    pygame.display.set_caption("Sokoban Game")
-    window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT),RESIZABLE)
-
-    # Game menu
-    menu = Menu()
+    menu = Menu(window)
 
     while True:
         # Check user inputs (mouse or keyboard)
@@ -79,7 +54,7 @@ def main():
             # mouse interactions
             if menu.click(event.pos):
                 if menu.quit:
-                    break
+                    return
                 elif menu.new_game:
                     new_game(window)
                 elif menu.continue_game:
@@ -87,20 +62,43 @@ def main():
                 else:
                     raise ValueError("Click problem on menu")
         elif event.type == VIDEORESIZE:
-            w,h = event.dict['size']
-            SOKOBAN.WINDOW_WIDTH = w
-            SOKOBAN.WINDOW_HEIGHT = h
-            window = pygame.display.set_mode((SOKOBAN.WINDOW_WIDTH, SOKOBAN.WINDOW_HEIGHT),RESIZABLE)
+            w, h = event.dict['size']
+            C.WINDOW_WIDTH = w
+            C.WINDOW_HEIGHT = h
+            window = pygame.display.set_mode(
+                (C.WINDOW_WIDTH, C.WINDOW_HEIGHT),
+                RESIZABLE)
 
         # else:
             # print('uncatched event:', event)
 
         # Redraws menu, as a game might have been played
-        window.fill(SOKOBAN.WHITE)
+        window.fill(C.WHITE)
         menu.render(window)
         pygame.display.flip()
 
+
+
+
+def main():
+
+    parse_options()
+    verbose("Verbose mode activated") # will only print if option was set
+
+    if C.WITH_SOUND:
+        pygame.mixer.pre_init(44100, 16, 2, 4096) # setup mixer to avoid sound lag
+
+    # Window creation
+    pygame.init()
+
+    # Key repetition to allow  fast cancels
+    pygame.key.set_repeat(100, 60)
+    pygame.display.set_caption("Sokoban Game")
+    window = pygame.display.set_mode((C.WINDOW_WIDTH, C.WINDOW_HEIGHT), RESIZABLE)
+
+    menu = Menu(window)
     pygame.quit()
+
 
 # a function to ease enter into debug mode using C-c "a la gdb"
 def debug_signal_handler(signal, frame):

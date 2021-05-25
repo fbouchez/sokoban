@@ -1,47 +1,47 @@
 import pygame
 from pygame.locals import *
-import constants as S
+import common as C
 from utils import *
 
 class Player:
     def __init__(self, game, level):
         self.game = game
         self.level = level
-        self.direction = S.DOWN
+        self.direction = C.DOWN
         self.load_textures()
         self.frames=0
-        self.status=S.ST_IDLE
+        self.status=C.ST_IDLE
         self.move_from=None
         self.sprite_idx=0 # which sprite to use for animation
         self.anim_frame_num=0
 
     def load_textures(self):
-        sheet = self.game.textures[S.ORIG_SPRITESIZE][S.PLAYER]
+        sheet = self.game.textures[C.ORIG_SPRITESIZE][C.PLAYER]
         st = []
-        self.textures = {S.ORIG_SPRITESIZE: st}
-        for d in range(S.NUMDIRS):
+        self.textures = {C.ORIG_SPRITESIZE: st}
+        for d in range(C.NUMDIRS):
             st.append([])
 
         for yoffset, direction in enumerate([
-            S.DOWN,
-            S.LEFT,
-            S.RIGHT,
-            S.UP
+            C.DOWN,
+            C.LEFT,
+            C.RIGHT,
+            C.UP
             ]):
-            for xoffset in range(S.SPRITE_PLAYER_NUM):
+            for xoffset in range(C.SPRITE_PLAYER_NUM):
                 st[direction].append(
                         sheet.subsurface((
-                            xoffset*S.ORIG_SPRITESIZE,
-                            yoffset*S.ORIG_SPRITESIZE,
-                            S.ORIG_SPRITESIZE,
-                            S.ORIG_SPRITESIZE)))
+                            xoffset*C.ORIG_SPRITESIZE,
+                            yoffset*C.ORIG_SPRITESIZE,
+                            C.ORIG_SPRITESIZE,
+                            C.ORIG_SPRITESIZE)))
 
 
     def update_textures(self):
-        if SOKOBAN.SPRITESIZE not in self.textures:
-            sp = SOKOBAN.SPRITESIZE
+        if C.SPRITESIZE not in self.textures:
+            sp = C.SPRITESIZE
             self.textures[sp] = []
-            for direct in self.textures[SOKOBAN.ORIG_SPRITESIZE]:
+            for direct in self.textures[C.ORIG_SPRITESIZE]:
                 l = []
                 self.textures[sp].append(l)
                 for texture in direct:
@@ -63,22 +63,22 @@ class Player:
         """
         if self.frames == 0:
             # ask level if allowed to continue moving
-            d = S.DIRS[self.direction]
+            d = C.DIRS[self.direction]
             self.status = self.level.move_player(d)
 
-            if self.status != S.ST_IDLE:
-                self.move_to=S.DIRS[self.direction]
-                self.move_from=S.DIRS[opposite(self.direction)]
-                self.frames = S.MOVE_FRAMES
+            if self.status != C.ST_IDLE:
+                self.move_to=C.DIRS[self.direction]
+                self.move_from=C.DIRS[opposite(self.direction)]
+                self.frames = C.MOVE_FRAMES
 
-                if self.status == S.ST_PUSHING:
+                if self.status == C.ST_PUSHING:
                     # for better visual effect
                     self.level.hide_pushed_box()
 
         else:
             self.frames -= 1
 
-        if self.frames == 0 and self.status == S.ST_PUSHING:
+        if self.frames == 0 and self.status == C.ST_PUSHING:
             # arrived at tile, put back box in matrix of boxes
             self.level.show_pushed_box()
 
@@ -86,7 +86,7 @@ class Player:
 
 
     def stop_move(self):
-        self.status = S.ST_IDLE
+        self.status = C.ST_IDLE
         assert(self.frames == 0)
 
 
@@ -96,30 +96,30 @@ class Player:
         x,y = self.level.player_position
 
         self.anim_frame_num += 1
-        if self.anim_frame_num >= S.FRAMES_PER_ANIM:
+        if self.anim_frame_num >= C.FRAMES_PER_ANIM:
             self.anim_frame_num = 0
             self.sprite_idx += 1
-            self.sprite_idx %= S.SPRITE_PLAYER_NUM
+            self.sprite_idx %= C.SPRITE_PLAYER_NUM
 
         if self.frames == 0:
-            xpos = x * S.SPRITESIZE
-            ypos = y * S.SPRITESIZE
+            xpos = x * C.SPRITESIZE
+            ypos = y * C.SPRITESIZE
             frame = 0
         else:
             mx,my = self.move_from
-            mrx = mx * self.frames / S.MOVE_FRAMES
-            mry = my * self.frames / S.MOVE_FRAMES
+            mrx = mx * self.frames / C.MOVE_FRAMES
+            mry = my * self.frames / C.MOVE_FRAMES
 
-            xpos = int((x+mrx) * S.SPRITESIZE)
-            ypos = int((y+mry) * S.SPRITESIZE)
+            xpos = int((x+mrx) * C.SPRITESIZE)
+            ypos = int((y+mry) * C.SPRITESIZE)
 
             # draw the box in front of the character
             mbx,mby = self.move_to
 
 
-            if self.status == S.ST_PUSHING:
-                window.blit(self.game.textures[S.SPRITESIZE][S.BOX], 
-                        (xpos+mbx*S.SPRITESIZE, ypos+mby*S.SPRITESIZE))
+            if self.status == C.ST_PUSHING:
+                window.blit(self.game.textures[C.SPRITESIZE][C.BOX], 
+                        (xpos+mbx*C.SPRITESIZE, ypos+mby*C.SPRITESIZE))
 
-        window.blit(self.textures[S.SPRITESIZE][self.direction][self.sprite_idx], (xpos, ypos))
+        window.blit(self.textures[C.SPRITESIZE][self.direction][self.sprite_idx], (xpos, ypos))
 

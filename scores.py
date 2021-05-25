@@ -1,5 +1,5 @@
 import json
-import constants as SOKOBAN
+import common as C
 
 class Scores:
     """
@@ -32,9 +32,9 @@ class Scores:
         if "current" in self.scores:
             self.current_pack = self.scores["current"]
         else:
-            if not len(SOKOBAN.PACKS):
+            if not len(C.PACKS):
                 raise ValueError("PACK is empty, should at least contain one level pack")
-            self.current_pack = SOKOBAN.PACKS[0]
+            self.current_pack = C.PACKS[0]
             self.scores["current"] = self.current_pack
 
 

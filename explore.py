@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import *
-import constants as SOKOBAN
+import common as C
 from utils import *
 import queue
 import heapq
@@ -26,7 +26,7 @@ class DFS:
             # mark current position as visited
             mark[y][x] = True
 
-            for d,(mx,my) in enumerate(SOKOBAN.DIRS):
+            for d,(mx,my) in enumerate(C.DIRS):
                 if self.level.is_wall((x+mx,y+my)):
                     continue
 
@@ -47,7 +47,7 @@ class Dijkstra:
     def attainable (self, source, boxes_block = True):
         init_x, init_y = source
 
-        allowed = [SOKOBAN.GROUND, SOKOBAN.TARGET, SOKOBAN.AIR]
+        allowed = [C.GROUND, C.TARGET, C.AIR]
 
         fifo = queue.Queue()
         fifo.put (source)
@@ -65,7 +65,7 @@ class Dijkstra:
             x,y = fifo.get()
             curdist = dist[y][x]
 
-            for d,(mx,my) in enumerate(SOKOBAN.DIRS):
+            for d,(mx,my) in enumerate(C.DIRS):
                 # print ('verbose y:', y+my, 'x:', x+mx)
                 if mark[y+my][x+mx]:
                     continue
@@ -149,7 +149,7 @@ class Deadlocks:
             t = fifo.get()
 
             # check all neighbours
-            for d in range(SOKOBAN.NUMDIRS):
+            for d in range(C.NUMDIRS):
                 n = in_dir(t,d)
                 x,y=n
                 if self.level.is_wall(n): continue
@@ -327,7 +327,7 @@ class BoxSolution:
             for st,(box,direct),moves in succs:
                 sthash, stboxes, player = st
                 # print ("retrieved succ:", st)
-                verbose ("\tsuc: b:", box, "d:", SOKOBAN.DNAMES[direct], "m:",moves)
+                verbose ("\tsuc: b:", box, "d:", C.DNAMES[direct], "m:",moves)
 
                 if sthash not in states:
                     states[sthash] = {
@@ -476,7 +476,7 @@ class BoxSolution:
                 opp=in_opp_dir(box,d)
                 if self.level.is_empty(opp):
                     # self.level.dij.show_distances()
-                    # print ('distance from', player, 'to', in_dir(box,d), SOKOBAN.DNAMES[d])
+                    # print ('distance from', player, 'to', in_dir(box,d), C.DNAMES[d])
                     dist = self.level.dij.distance(in_dir(box,d))
 
                     stsuc = self.create_successor(box=opp, player=box) # player position will be at box current one

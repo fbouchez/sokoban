@@ -1,6 +1,6 @@
 import os
 import pygame
-import constants as S
+import common as C
 from copy import deepcopy
 from explore import *
 from utils import *
@@ -50,24 +50,24 @@ class Level:
                 block = symbols.index(rows[y][x])
                 level_row.append(block)
 
-                if block == S.BOX:
-                    level_row[-1] = S.GROUND
+                if block == C.BOX:
+                    level_row[-1] = C.GROUND
                     self.boxes.append((x,y))
 
-                elif block == S.TARGET:
+                elif block == C.TARGET:
                     self.targets.append((x,y))
 
-                elif block == S.TARGET_FILLED:
-                    level_row[-1] = S.TARGET
+                elif block == C.TARGET_FILLED:
+                    level_row[-1] = C.TARGET
                     self.boxes.append((x,y))
                     self.targets.append((x,y))
 
-                elif block == S.PLAYER:
-                    level_row[-1] = S.GROUND
+                elif block == C.PLAYER:
+                    level_row[-1] = C.GROUND
                     self.player_position = (x,y)
 
-                elif block == S.PLAYER_ON_TARGET:
-                    level_row[-1] = S.TARGET
+                elif block == C.PLAYER_ON_TARGET:
+                    level_row[-1] = C.TARGET
                     self.targets.append((x,y))
                     self.player_position = (x,y)
 
@@ -79,7 +79,7 @@ class Level:
 
         for y in range(height):
             while len(self.map[y]) < max_width:
-                self.map[y].append(S.AIR)
+                self.map[y].append(C.AIR)
 
 
 
@@ -104,7 +104,7 @@ class Level:
         try:
             with open(os.path.join('assets','levels',"level_" + str(levelnum) + ".txt")) as level_file:
                 rows = level_file.read().split('\n')
-            self.parse_rows(rows, S.SYMBOLS_MODERN)
+            self.parse_rows(rows, C.SYMBOLS_MODERN)
             return True
         except FileNotFoundError:
             return False
@@ -169,7 +169,7 @@ class Level:
                 return False
 
             self.title, rows = self.single_file_levels[levelnum-1]
-            self.parse_rows(rows, S.SYMBOLS_ORIGINALS)
+            self.parse_rows(rows, C.SYMBOLS_ORIGINALS)
         else:
             ret = self.load_file_by_file(levelnum=levelnum)
             if not ret:
@@ -182,8 +182,8 @@ class Level:
         for y in range(self.height):
             for x in range(self.width):
                 if mark[y][x]:
-                    if self.map[y][x] == S.AIR:
-                        self.map[y][x] = S.GROUND
+                    if self.map[y][x] == C.AIR:
+                        self.map[y][x] = C.GROUND
 
         # reset previous analyses
         self.dij = None
@@ -192,7 +192,7 @@ class Level:
         self.compute_dead()
 
         # highlight on some tiles
-        self.mhighlight = [[S.HOFF for x in range(self.width)] for y in range(self.height)]
+        self.mhighlight = [[C.HOFF for x in range(self.width)] for y in range(self.height)]
 
         # no previous move to cancel
         self.state_stack = []
@@ -203,10 +203,10 @@ class Level:
     def reset_highlight (self):
         for y in range(self.height):
             for x in range(self.width):
-                self.mhighlight[y][x] = S.HOFF
+                self.mhighlight[y][x] = C.HOFF
 
 
-    def highlight (self, positions, htype=S.HATT):
+    def highlight (self, positions, htype=C.HATT):
         for x,y in positions:
             self.mhighlight[y][x] = htype
 
@@ -216,15 +216,15 @@ class Level:
 
     def is_target (self, pos):
         x,y = pos
-        return self.map[y][x] in [S.TARGET, S.TARGET_FILLED]
+        return self.map[y][x] in [C.TARGET, C.TARGET_FILLED]
 
     def is_wall (self, pos):
         x,y = pos
-        return self.map[y][x] == S.WALL
+        return self.map[y][x] == C.WALL
 
     def is_floor (self, pos):
         x,y = pos
-        return self.map[y][x] in [S.GROUND, S.TARGET, S.PLAYER]
+        return self.map[y][x] in [C.GROUND, C.TARGET, C.PLAYER]
 
     def is_empty (self, pos):
         return self.is_floor(pos) and not self.has_box(pos)
@@ -258,9 +258,9 @@ class Level:
             if self.is_target(box): continue
             if self.is_dead(box): return True
             prev = False
-            for d in S.AROUND:
+            for d in C.AROUND:
                 # if disp:
-                    # print ("cheking", S.DNAMES[d])
+                    # print ("cheking", C.DNAMES[d])
                 side = in_dir(box, d)
                 blocked = self.is_wall(side)
                 if prev and blocked:
@@ -273,11 +273,11 @@ class Level:
                         # print ("there is a box copain", x,y)
                     # check if close to a wall
                     if horizontal(d):
-                        d1 = S.UP
-                        d2 = S.DOWN
+                        d1 = C.UP
+                        d2 = C.DOWN
                     else:
-                        d1 = S.LEFT
-                        d2 = S.RIGHT
+                        d1 = C.LEFT
+                        d2 = C.RIGHT
                         # check above and below
                     ub = in_dir(box, d1)
                     us = in_dir(side,d1)
@@ -317,7 +317,7 @@ class Level:
 
         # print ("trying to move", x,"x",y," in direction",direction)
 
-        player_status  = S.ST_IDLE
+        player_status  = C.ST_IDLE
 
         xx = x+move_x
         yy = y+move_y
@@ -331,13 +331,13 @@ class Level:
         if self.is_empty((xx,yy)):
             # Player just moved on an empty cell
             self.player_position = (xx,yy)
-            player_status  = S.ST_MOVING
+            player_status  = C.ST_MOVING
 
         elif self.has_box((xx,yy)) and self.is_empty((xx2,yy2)):
             # Player is trying to push a box
             self.pushed_box = (xx2,yy2)
 
-            player_status  = S.ST_PUSHING
+            player_status  = C.ST_PUSHING
 
             # Save current state
             self.push_state()
@@ -350,7 +350,7 @@ class Level:
 
             self.player_position = (xx,yy)
 
-        if player_status != S.ST_IDLE:
+        if player_status != C.ST_IDLE:
             self.invalidate()
             self.num_moves += 1
 
@@ -385,8 +385,8 @@ class Level:
         mark = self.compute_attainable(virtual)
         l = []
         for bx,by in boxlist:
-            sides = [False for d in S.DIRS]
-            for d,(mx,my) in enumerate(S.DIRS):
+            sides = [False for d in C.DIRS]
+            for d,(mx,my) in enumerate(C.DIRS):
                 if mark[by+my][bx+mx]:
                     sides[d] = True
             l.append(tuple(sides))
@@ -401,7 +401,7 @@ class Level:
         mark = self.dij.get_marks()
         succ = []
         bx,by = boxpos
-        for mx,my in S.DIRS:
+        for mx,my in C.DIRS:
             if mark[by+my][bx+mx] \
             and self.is_empty((bx-mx, by-my)):
                 # side is attainable
@@ -416,7 +416,7 @@ class Level:
         mark = self.dij.get_marks()
         succ = []
         for bx,by in self.boxes:
-            for mx,my in S.DIRS:
+            for mx,my in C.DIRS:
                 if mark[by+my][bx+mx] \
                 and self.is_empty((bx-mx, by-my)):
                     # side is attainable
@@ -461,7 +461,7 @@ class Level:
 
     def side_box(self, box, d):
         bx,by = box
-        mx,my = S.DIRS[d]
+        mx,my = C.DIRS[d]
         return bx+mx,by+my
 
 
@@ -473,15 +473,15 @@ class Level:
         self.reset_highlight()
 
         self.compute_attainable()
-        self.highlight(self.dij.att_list, S.HATT)
+        self.highlight(self.dij.att_list, C.HATT)
 
         succ = self.compute_boxes_successors()
-        self.highlight(succ, S.HSUCC)
+        self.highlight(succ, C.HSUCC)
 
         for y in range(self.height):
             for x in range(self.width):
                 if self.dead[y][x] and self.is_floor((x,y)):
-                    self.highlight([(x,y)], S.HERROR)
+                    self.highlight([(x,y)], C.HERROR)
 
     def invalidate(self):
         self.dij = None
@@ -523,19 +523,19 @@ class Level:
 
         for y in range(self.height):
             for x in range(self.width):
-                pos = (x * S.SPRITESIZE, y * S.SPRITESIZE)
+                pos = (x * C.SPRITESIZE, y * C.SPRITESIZE)
 
                 if self.mboxes[y][x]:
                     if self.is_target((x,y)):
-                        window.blit(textures[S.TARGET_FILLED], pos)
+                        window.blit(textures[C.TARGET_FILLED], pos)
                     else:
-                        window.blit(textures[S.BOX], pos)
+                        window.blit(textures[C.BOX], pos)
 
                 elif self.map[y][x] in textures:
                     window.blit(textures[self.map[y][x]], pos)
                     if self.is_target((x,y)):
-                        window.blit(textures[S.TARGETOVER], pos)
+                        window.blit(textures[C.TARGETOVER], pos)
 
                 h = self.mhighlight[y][x]
                 if h:
-                    window.blit(highlights[S.SPRITESIZE][h], pos)
+                    window.blit(highlights[C.SPRITESIZE][h], pos)

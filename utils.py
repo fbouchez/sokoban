@@ -1,4 +1,4 @@
-import constants as SOKOBAN
+import common as C
 
 # debug functions
 VERBOSE=False
@@ -25,22 +25,22 @@ def tupleit(t):
 
 # direction helpers
 def opposite(d):
-    return SOKOBAN.OPPOSITE[d]
+    return C.OPPOSITE[d]
 
 def in_dir(pos, d, dist=1):
-    mx,my = SOKOBAN.DIRS[d]
+    mx,my = C.DIRS[d]
     x,y=pos
     return x+mx*dist,y+my*dist
 
 def rotate(d):
     # clockwise or rev-clockwise, (changes horiz<->vert)
-    return (d+2) % SOKOBAN.NUMDIRS
+    return (d+2) % C.NUMDIRS
 
 def in_opp_dir(pos, d):
     return in_dir(pos, opposite(d))
 
 def horizontal(d):
-    return d == SOKOBAN.LEFT or d == SOKOBAN.RIGHT
+    return d == C.LEFT or d == C.RIGHT
 
 
 # check if element is last of an iterator
