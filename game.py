@@ -1,5 +1,6 @@
 """
-The bulk of the game
+The bulk of the game, this is where the sokoban levels are displayed
+and the interaction with the user playing the level happens.
 """
 
 import pygame
@@ -106,11 +107,13 @@ class GameInterface:
             callback=self.game.load_level
         )
 
+        # START_CUT
         self.txtVisu = Text(
             "Aide visuelle (V)",
             self.font_messages, C.BLACK, C.ALEFT, C.ABOTTOM,
             callback=self.game.toggle_visualize
         )
+        # END_CUT
 
         self.txtNext = Text(
             ">>",
@@ -125,11 +128,13 @@ class GameInterface:
         )
 
 
+        # START_CUT
         self.txtHelp = Text(
             "Aide sokoban (H) / Résolution complète (A)",
             self.font_messages, C.BLACK, C.ACENTER, C.ABOTTOM,
             callback=None
         )
+        # END_CUT
 
         self.txtMoves = Text(
             "Coups : 0",
@@ -158,6 +163,7 @@ class GameInterface:
             callback=None
         )
 
+        # START_CUT
         self.txtLost = Text(
             "Résolution impossible (certaines boîtes sont définitivement coincées)",
             self.font_messages, C.RED, C.ACENTER, C.ACUSTOM,
@@ -171,6 +177,7 @@ class GameInterface:
             yfun=lambda: self.compute_ymessages() - 30,
             callback=None
         )
+        # END_CUT
 
         self.txtInfo = Text(
             " ",
@@ -182,18 +189,28 @@ class GameInterface:
         self.clickableTexts = [
             self.txtCancel,
             self.txtReset,
+            # START_CUT
             self.txtVisu,
             self.txtHelp,
+            # END_CUT
             self.txtNext,
             self.txtPrev,
         ]
 
-        self.allways_texts = [
+        self.always_texts = [
             self.txtPack,
             self.txtLevel,
             self.txtTitle,
             self.txtBestMoves,
         ] + self.clickableTexts
+
+        self.all_texts = [
+            self.txtInfo,
+# START_CUT
+            self.txtLost,
+            self.txtResol,
+# END_CUT
+        ] +self.always_texts
 
     def compute_ymessages(self):
         return C.WINDOW_HEIGHT - 80
@@ -583,6 +600,8 @@ class Game:
             # fps = 60 / total_time * 1000
             # print(fps_message.format(fps=fps), total_time, end="\r")
 
+
+# START_CUT
     def toggle_visualize(self):
         """
         Activate/deactivate visual mode:
@@ -652,6 +671,7 @@ class Game:
         # check if last push triggered a win condition
         if self.level.has_win():
             self.level_win()
+# END_CUT
 
     def cancel_selected(self):
         self.selected_position = None
@@ -661,10 +681,12 @@ class Game:
         remaining = self.level.cancel_last_change()
         if not remaining:
             self.interface.deactivate_cancel()
+# START_CUT
         lost = self.level.lost_state()
         if lost:
             verbose("Still lost state !")
         self.interface.set_lost_state(lost)
+# END_CUT
 
     def process_event(self, event):
         if event.type == QUIT:
@@ -691,9 +713,11 @@ class Game:
                 # Restart current level
                 self.load_level()
 
+# START_CUT
             elif event.key == K_v:
                 # Vizualize possible moves
                 self.toggle_visualize()
+# END_CUT
 
             elif event.key == K_c:
                 # Cancel last move
@@ -703,8 +727,10 @@ class Game:
             elif event.key == K_t:
                 # Add code here that you would like to trigger
                 # with the 'T' key
-                pass
+                # For now, just move in a circle in the 'test_move' method
+                self.test_move()
 
+# START_CUT            #
             # "all box solve" key
             elif event.key == K_a:
                 self.interface.set_solving(True, num=0)
@@ -730,6 +756,7 @@ class Game:
                     self.animate_move_boxes(path, skip_last=True, fast=False)
 
                 self.interface.set_solving(False)
+# END_CUT
             else:
                 verbose("Unbound key", event.key)
 
@@ -806,9 +833,9 @@ class Game:
 
             # if not stop_next_tile:
             # discard all events but:
-            # quit
-            # release of direction key
-            # press of a new key (save it for later)
+            # - quit
+            # - release of direction key
+            # - press of a new key (save it for later)
             while not stop_next_tile:
                 event = pygame.event.poll()
                 if event.type == NOEVENT:
@@ -842,11 +869,13 @@ class Game:
                         is_win = True
                         break
 
+# START_CUT
                     # or if position is lost...
                     lost = self.level.lost_state()
                     if lost:
                         verbose("Lost state !")
                     self.interface.set_lost_state(lost)
+# END_CUT
 
                 # key not pressed anymore and finished arriving on the tile
                 if stop_next_tile:
@@ -875,6 +904,7 @@ class Game:
             if postype == C.BOX:
                 self.cancel_selected()
 
+# START_CUT
                 # solving for only one box
                 self.interface.set_solving(True, num=0)
 
@@ -899,6 +929,7 @@ class Game:
                     self.animate_move_boxes(path)
 
                 self.interface.set_solving(False)
+# END_CUT
 
             else:
                 # now we should only select boxes
@@ -911,8 +942,12 @@ class Game:
             self.selected_position = (C.BOX, position)
             self.level.highlight([position], C.HSELECT)
         else:
+            verbose("position selected, what now?")
+# START_CUT
             # trying to move the character
             self.animate_move_to(position)
+# END_CUT
+
 
     def wait_key(self, update=True):
         if update:
@@ -925,15 +960,25 @@ class Game:
                 break
 
     def check_cancel(self, message):
+        """
+        Can be used in a long calculation to check
+        whether the user pressed 'Escape'
+        """
+# START_CUT
         self.interface.set_solving(True, message=message)
+# END_CUT
         self.interface.render(self.window, S.scores.index_level, self.level)
         pygame.display.flip()
         event = pygame.event.poll()
 
+        # absorb all events but escape
         while event.type != NOEVENT:
             if event.type == KEYDOWN \
                     and event.key == K_ESCAPE:
+                # do something here to cancel calculation
+# START_CUT
                 self.interface.set_solving(False)
+# END_CUT
                 return True
             event = pygame.event.poll()
         return False
@@ -975,3 +1020,15 @@ class Game:
         self.update_screen()
         print("Waiting for keypress...")
         self.wait_key()
+
+
+
+    def test_move(self):
+        """
+        "automated" movement: pretend the user has pressed a direction key
+        on the keyboard.
+        Here we move up, right, down, then left
+        """
+        for m in [C.UP, C.RIGHT, C.DOWN, C.LEFT]:
+            key = DIRKEY[m]
+            self.move_player(key)

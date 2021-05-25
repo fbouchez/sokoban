@@ -9,6 +9,10 @@ from math import sqrt
 
 
 class DFS:
+    """
+    Classical Depth-First Search walkthrough of the level to discover what is 
+    the "interior" and "exterior.
+    """
     def __init__(self, level):
         self.level = level
 
@@ -36,6 +40,7 @@ class DFS:
         return mark
 
 
+# START_CUT
 class Dijkstra:
     def __init__(self, level):
         self.level = level
@@ -533,6 +538,7 @@ class BoxSolution:
 
         return list(reversed(path))
 
+# END_CUT
 
 
 

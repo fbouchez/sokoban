@@ -9,7 +9,9 @@ class Level:
     def __init__(self, game, filename, single_file=True):
         self.game=game
         self.num_moves = 0
+# START_CUT
         self.dij = None
+# END_CUT
         self.filename = filename
         self.single_file        = single_file
         self.single_file_levels = []
@@ -168,22 +170,23 @@ class Level:
             if not ret:
                 return False
 
+        # Use DFS to mark the interior floor as ground
         dfs = DFS(self)
-
         mark = dfs.search_floor(self.player_position)
-
         for y in range(self.height):
             for x in range(self.width):
                 if mark[y][x]:
                     if self.map[y][x] == C.AIR:
                         self.map[y][x] = C.GROUND
 
+# START_CUT        #
         # reset previous analyses
         self.dij = None
 
         # compute deadlocks
         self.compute_dead()
 
+# END_CUT
         # highlight on some tiles
         self.mhighlight = [[C.HOFF for x in range(self.width)] for y in range(self.height)]
 
@@ -298,7 +301,9 @@ class Level:
         self.update_box_positions()
         self.player_position = state['player']
         self.num_moves = state['moves']
+# START_CUT
         self.invalidate()
+# END_CUT
 
     def push_state(self):
         self.state_stack.append(self.get_current_state())
@@ -344,7 +349,9 @@ class Level:
             self.player_position = (xx,yy)
 
         if player_status != C.ST_IDLE:
+# START_CUT
             self.invalidate()
+# END_CUT
             self.num_moves += 1
 
         return player_status
@@ -359,6 +366,7 @@ class Level:
 
 
 
+# START_CUT
     def compute_attainable(self,virtual=False):
         if virtual:
             locdij = Dijkstra(self)
@@ -478,6 +486,7 @@ class Level:
 
     def invalidate(self):
         self.dij = None
+# END_CUT
 
 
     def update_box_positions(self):
@@ -513,6 +522,10 @@ class Level:
 
 
     def render(self, window, textures, highlights):
+        """
+        Render the whole level.
+        Some tiles might be highlighted.
+        """
 
         for y in range(self.height):
             for x in range(self.width):

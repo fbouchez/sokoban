@@ -1,25 +1,11 @@
-# SINGLE_FILE = 'Original.txt'
-# SINGLE_FILE = 'Minicosmos.txt'
-SINGLE_FILE = 'Original_remixed.txt'
-
-# SINGLE_FILE = 'Tests.txt'
-# SINGLE_FILE = 'Original_remixed.txt'
-# SINGLE_FILE = 'XSokoban.txt'
-# SINGLE_FILE = 'Simple Sokoban.txt'
-# SINGLE_FILE = 'Large Test Suite Sets/Aymeric_Du_Peloux_282.xsb'
-# SINGLE_FILE = 'Large Test Suite Sets/Grigr2001_100.xsb'
-# SINGLE_FILE = 'Haikemono collection.txt'
-# SINGLE_FILE = 'Pufiban.txt'
-# SINGLE_FILE = 'microban.txt'
-
 PACKS = [
       'Original.txt'
     , 'Minicosmos.txt'
-    , 'Original_remixed.txt'
-
     , 'Simple Sokoban.txt'
-    , 'XSokoban.txt'
     , 'Tests.txt'
+
+    , 'Original_remixed.txt'
+    , 'XSokoban.txt'
     , 'Pufiban.txt'
     , 'microban.txt'
     , 'Haikemono collection.txt'
@@ -57,9 +43,9 @@ SND_WOODFRIC_NUM = 5
 
 # Text alignment
 #vertical
-ATOP =0
-AMID =1
-ABOTTOM=2
+ATOP = 0
+AMID = 1
+ABOTTOM = 2
 #horizontal
 ALEFT=3
 ACENTER=4
