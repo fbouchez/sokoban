@@ -7,6 +7,7 @@ import sys
 import os
 from pygame.locals import *
 import common as C
+import scores as S
 from graphics import *
 from level import *
 from explore import *
@@ -73,15 +74,24 @@ class GameInterface:
         self.has_info=False
         self.is_solving=False
 
+
     def load_assets(self):
+        self.txtPack = Text(
+            S.scores.pack_name(),
+            self.font_messages, C.BLUE, C.ALEFT, C.ATOP,
+        )
 
-        self.txtLevel = Text("Niveau 1",
-                self.font_messages, C.BLUE, C.ALEFT, C.ATOP,
-                callback=None)
+        self.txtLevel = Text(
+            "Niveau 1",
+            self.font_messages, C.BLUE, C.ALEFT, C.ACUSTOM,
+            below=self.txtPack
+        )
 
-        self.txtTitle = Text(" ",
-                self.font_messages, C.BLUE, C.ALEFT, C.ACUSTOM,
-                callback=None)
+        self.txtTitle = Text(
+            " ",
+            self.font_messages, C.BLUE, C.ALEFT, C.ACUSTOM,
+            below=self.txtLevel
+        )
 
         self.txtTitle.set_pos(below=self.txtLevel)
 
@@ -152,6 +162,7 @@ class GameInterface:
 
         self.all_texts = self.clickableTexts + \
                 [
+                self.txtPack,
                 self.txtLevel,
                 self.txtMoves,
                 self.txtBestMoves,
@@ -256,6 +267,7 @@ class GameInterface:
 
     def render(self, window, level_num, level):
 
+        self.txtPack.render(window)
         self.txtLevel.render(window)
         self.txtTitle.render(window)
         self.txtMoves.render(window, "Coups : " + str(level.num_moves))

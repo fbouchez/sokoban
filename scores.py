@@ -1,4 +1,6 @@
 import json
+import os
+from pathlib import Path
 import common as C
 
 scores = None
@@ -19,6 +21,7 @@ class Scores:
         self.load()
 
     def template(self):
+        # last level is the last finished level in the pack
         t = {
                 'style': 'single_file',
                 'last_level': 0,
@@ -37,6 +40,12 @@ class Scores:
             self.index_level = self.last_level()+1
 
         self.save()
+
+
+
+    def pack_name(self):
+        return os.path.splitext(self.current_pack)[0]
+
 
 
     def load(self):

@@ -117,10 +117,13 @@ class Menu(GenericMenu):
         sokoban = Game(self.window, continueGame=True)
         sokoban.start()
 
+    def mk_pack_name(self):
+        return "[ " + S.scores.pack_name() + " ]"
+
     def choose_pack(self):
         # choosing a level pack
         PackChoice(self.window)
-
+        self.txtPackName.update(self.mk_pack_name())
 
 
     def quit(self):
@@ -148,10 +151,18 @@ class Menu(GenericMenu):
         )
 
 
+        self.txtPackName = Text(
+            self.mk_pack_name(),
+            self.font_menu, C.BLUE, C.ACENTER, C.ACUSTOM,
+            below=self.txtChoose
+        )
+
+
+
         self.txtQuit = Text(
-            "Quitter partie (Q)",
-            self.font_menu, C.BLACK, C.ACENTER, C.ACUSTOM,
-            below=self.txtChoose,
+            "Quitter (Q)",
+            self.font_menu, C.BLACK, C.ACENTER, C.ABOTTOM,
+            # below=self.txtChoose,
             callback=self.set_return,
         )
 
@@ -162,7 +173,9 @@ class Menu(GenericMenu):
             self.txtQuit,
         ]
 
-        self.renderTexts = self.clickableTexts
+        self.renderTexts = [
+            self.txtPackName
+        ] + self.clickableTexts
 
         self.keys_events.update({
             K_n: self.new_game,
