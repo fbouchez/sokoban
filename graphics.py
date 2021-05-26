@@ -3,6 +3,7 @@ Generic graphic methods to display text messages.
 """
 
 import pygame
+import os
 from pygame.locals import *
 import common as C
 from utils import *
@@ -177,7 +178,7 @@ class Character:
 
     def load_textures(self):
         ss = C.CHARACTER_SPRITESIZE
-        sheet = self.game.textures[C.ORIG_SPRITESIZE][C.PLAYER]
+        sheet = self.game.textures.get(C.ORIG_SPRITESIZE)[C.PLAYER]
         st = []
         self.textures = {C.ORIG_SPRITESIZE: st}
         for d in range(C.NUMDIRS):
@@ -245,7 +246,7 @@ class Character:
         self.status = C.ST_IDLE
         assert self.frames == 0
 
-    def render(self, window, textures):
+    def render(self, window):
         x, y = self.level.player_position
 
         self.anim_frame_num += 1
@@ -266,12 +267,120 @@ class Character:
             xpos = int((x+mrx) * C.SPRITESIZE)
             ypos = int((y+mry) * C.SPRITESIZE)
 
-            # draw the box in front of the character
+            # draw the box in front of the character when pushing
             mbx, mby = self.move_to
-
             if self.status == C.ST_PUSHING:
-                window.blit(self.game.textures[C.SPRITESIZE][C.BOX],
+                window.blit(self.game.textures.get(C.SPRITESIZE)[C.BOX],
                             (xpos+mbx*C.SPRITESIZE, ypos+mby*C.SPRITESIZE))
 
+        # draw the character itself
         window.blit(self.textures[C.SPRITESIZE][self.direction][self.sprite_idx],
                     (xpos, ypos))
+
+
+class Textures:
+    """
+    Sprites for the level and character
+    """
+
+    def __init__(self):
+        """
+        loads the textures that will be drawn in the game
+        (walls, boxes, character, etc.)
+        """
+        def fn(f):
+            return os.path.join('assets', 'images', f)
+
+        ground = pygame.image.load(fn('stoneCenter.png')).convert_alpha()
+
+        self.textures = {
+            C.ORIG_SPRITESIZE: {
+                C.WALL: pygame.image.load(fn('wall.png')).convert_alpha(),
+                # C.BOX: pygame.image.load(fn('crate.png')).convert_alpha(),
+                C.BOX: pygame.image.load(fn('box.png')).convert_alpha(),
+                C.TARGET: ground,
+                # target overlay
+                C.TARGETOVER: pygame.image.load(fn('target.png')).convert_alpha(),
+                # C.TARGET_FILLED: pygame.image.load(fn('crate_correct.png')).convert_alpha(),
+                C.TARGET_FILLED: pygame.image.load(fn('box_correct.png')).convert_alpha(),
+                C.PLAYER: pygame.image.load(fn('player_sprites.png')).convert_alpha(),
+                # C.PLAYER: pygame.image.load(fn('character-female-knight.png')).convert_alpha(),
+                C.GROUND: ground}}
+
+        def surfhigh(size, color, alpha):
+            surf = pygame.Surface((size, size))
+            surf.set_alpha(alpha)
+            surf.fill(color)  # green highlight
+            return surf
+
+        # small surfaces to draw attention to a particular tile of the board
+        # e.g., to highlight a tile
+        # green highlight, for attainable tiles
+        def surfAtt(s): return surfhigh(s, (0, 255, 0), 50)
+        # blue highlight,  to show successors of boxes
+        def surfSucc(s): return surfhigh(s, (0, 0, 255), 50)
+        # yellow highlight, to show selection
+        def surfSelect(s): return surfhigh(s, (255, 255, 0), 200)
+        # red highlight, in case of an error
+        def surfError(s): return surfhigh(s, (255, 0, 0), 200)
+
+        self.highlights = {}
+        for s in C.SPRITESIZES:
+            self.highlights[s] = {
+                C.HATT:   surfAtt(s),
+                C.HSUCC:  surfSucc(s),
+                C.HSELECT: surfSelect(s),
+                C.HERROR: surfError(s)
+            }
+
+
+    def get(self, size):
+        return self.textures[size]
+
+
+    def compute_sprite_size(self, level_height, level_width):
+        """
+        deciding which size of sprites to use based on the
+        size of the level and the size of the window
+        """
+        # determine size of level on screen
+        max_height = C.WINDOW_HEIGHT - 2*C.MAP_BORDER
+        max_width = C.WINDOW_WIDTH - 2*C.MAP_BORDER
+
+        max_sprite_size = min(
+            max_height / level_height,
+            max_width / level_width)
+
+        minss = C.SPRITESIZES[0]
+        maxss = C.SPRITESIZES[-1]
+
+        if max_sprite_size < minss:
+            sp = minss
+        elif max_sprite_size > maxss:
+            sp = maxss
+        else:
+            sp = minss
+            for size in C.SPRITESIZES:
+                if size > max_sprite_size:
+                    break
+                sp = size
+
+        verbose('will use sprite size', sp)
+        C.SPRITESIZE = sp
+
+
+
+    def update_textures(self):
+        """
+        Create sprites of the current size by scaling.
+        """
+        if C.SPRITESIZE not in self.textures:
+            sp = C.SPRITESIZE
+            self.textures[sp] = {}
+            for key, texture in self.textures[C.ORIG_SPRITESIZE].items():
+                sc = pygame.transform.smoothscale(texture, (sp, sp))
+                self.textures[sp][key] = sc
+
+
+
+
