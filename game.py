@@ -508,6 +508,7 @@ class Game:
         max_height = C.WINDOW_HEIGHT - 2*C.MAP_BORDER
         max_width = C.WINDOW_WIDTH - 2*C.MAP_BORDER
 
+        # deciding which size of sprites to use
         max_sprite_size = min(
             max_height / self.level.height,
             max_width / self.level.width)
@@ -530,12 +531,15 @@ class Game:
         verbose('will use sprite size', sp)
         C.SPRITESIZE = sp
 
-        # space to draw the level
+        # surface to draw the level
         self.board = pygame.Surface((
             self.level.width * C.SPRITESIZE,
             self.level.height * C.SPRITESIZE))
 
     def update_textures(self):
+        """
+        Create sprites of the current size by scaling.
+        """
         if C.SPRITESIZE not in self.textures:
             sp = C.SPRITESIZE
             self.textures[sp] = {}
@@ -549,8 +553,6 @@ class Game:
         if self.channelFootsteps is not None:
             if self.channelFootsteps.get_busy():
                 return
-        # self.footstep_idx += 1
-        # self.footstep_idx %= C.SND_FOOTSTEPNUM
         self.footstep_idx = randrange(C.SND_FOOTSTEP_NUM)
         self.channelFootsteps = self.sndFootstep[self.footstep_idx].play()
 
@@ -561,9 +563,6 @@ class Game:
         if self.channelPushing is not None:
             if self.channelPushing.get_busy():
                 return
-
-        # self.channelPushing = self.sndPushing.play() #0,1000)
-#
         self.woodpush_idx = randrange(C.SND_WOODFRIC_NUM)
         self.channelPushing = self.sndWoodpush[self.woodpush_idx].play()
 
