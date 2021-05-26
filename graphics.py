@@ -7,6 +7,7 @@ from pygame.locals import *
 import common as C
 from utils import *
 
+
 class Text:
     """
     Class for a text displayed on screen.
@@ -14,7 +15,7 @@ class Text:
     - the position relative to current window, using xalign and yalign
     - the absolute position, using x and y
     - a mix of the above two (e.g., yalign at TOP, and absolute x)
-    - the relative position, using below or above, refering to another Text 
+    - the relative position, using below or above, refering to another Text
       object
     - a function to be called to compute y when resizing
 
@@ -22,8 +23,9 @@ class Text:
     or 'retval': a value to return if text is clicked.
     """
 
-    def __init__(self,text,font,color,xalign,yalign,x=0,y=0,below=None,above=None,yfun=None,callback=None,retval=None):
-        self.font  = font
+    def __init__(self, text, font, color, xalign, yalign, x=0, y=0,
+                 below=None, above=None, yfun=None, callback=None, retval=None):
+        self.font = font
         self.color = color
         self.xalign = xalign
         self.yalign = yalign
@@ -31,9 +33,8 @@ class Text:
         self.below = below
         self.above = above
         self.callback = callback
-        self.pos  = (x,y)
+        self.pos = (x, y)
         self.update(text)
-
 
     def change_color(self, color):
         self.color = color
@@ -50,32 +51,32 @@ class Text:
         if self.xalign == C.ALEFT:
             xpos = C.BORDER
         elif self.xalign == C.ACENTER:
-            xpos= C.WINDOW_WIDTH // 2 - self.surf.get_width() // 2
+            xpos = C.WINDOW_WIDTH // 2 - self.surf.get_width() // 2
         elif self.xalign == C.ARIGHT:
-            xpos= C.WINDOW_WIDTH - self.surf.get_width() - C.BORDER
+            xpos = C.WINDOW_WIDTH - self.surf.get_width() - C.BORDER
         elif self.xalign == C.ACUSTOM:
-            xpos=self.pos[0]
+            xpos = self.pos[0]
         else:
             raise ValueError("Horizontal alignment")
 
         if self.yalign == C.ATOP:
             ypos = C.BORDER
         elif self.yalign == C.AMID:
-            ypos= C.WINDOW_HEIGHT // 2 - self.surf.get_height() // 2
+            ypos = C.WINDOW_HEIGHT // 2 - self.surf.get_height() // 2
         elif self.yalign == C.ABOTTOM:
-            ypos= C.WINDOW_HEIGHT - self.surf.get_height() - C.BORDER
+            ypos = C.WINDOW_HEIGHT - self.surf.get_height() - C.BORDER
         elif self.yalign == C.ACUSTOM:
             self.set_pos(
-                    below=self.below,
-                    above=self.above,
-                    yfun=self.yfun)
-            _,ypos = self.pos
+                below=self.below,
+                above=self.above,
+                yfun=self.yfun)
+            _, ypos = self.pos
         else:
             raise ValueError("Horizontal alignment" + str(self.yalign))
 
-        self.pos= (xpos,ypos)
+        self.pos = (xpos, ypos)
 
-    def set_pos (self, x=None,y=None,below=None,above=None,yfun=None):
+    def set_pos(self, x=None, y=None, below=None, above=None, yfun=None):
         if x is None:
             x = self.pos[0]
         if y is None:
@@ -87,18 +88,19 @@ class Text:
         elif self.yfun is not None:
             y = self.yfun()
 
-        self.pos = (x,y)
+        self.pos = (x, y)
 
-    def is_clicked(self,click, do_callback=True):
-        cx,cy = click
-        px,py = self.pos
-        w=self.surf.get_width()
-        h=self.surf.get_height()
+    def is_clicked(self, click, do_callback=True):
+        cx, cy = click
+        px, py = self.pos
+        w = self.surf.get_width()
+        h = self.surf.get_height()
 
-        verbose (self.text, "clicked:", click, "and position:", self.pos, "with wh:", w,h)
+        verbose(self.text, "clicked:", click,
+                "and position:", self.pos, "with wh:", w, h)
 
         cl = px < cx and cx < px+w and \
-             py < cy and cy < py+h
+            py < cy and cy < py+h
 
         if not cl:
             return False
@@ -112,17 +114,15 @@ class Text:
 
         return True
 
-
     def render(self, window, text=None):
         if text:
             self.update(text)
         window.blit(self.surf, self.pos)
 
 
-
 class Paragraph(Text):
     """
-    Similar to Text class, but handles multiline paragraphs passed as 
+    Similar to Text class, but handles multiline paragraphs passed as
     a list of lines.
     """
 
@@ -135,13 +135,16 @@ class Paragraph(Text):
     def make_surface(self, text):
         self.surf.fill(C.WHITE)
         pos = (0, 0)
-        words = [line.split(' ') for line in text]  # 2D array where each row is a list of words.
-        space, line_height = self.font.size(' ')  # The width and height of a space.
+        # 2D array where each row is a list of words.
+        words = [line.split(' ') for line in text]
+        # The width and height of a space.
+        space, line_height = self.font.size(' ')
         x, y = pos
 
         for line in words:
             for word in line:
-                word_surface = self.font.render(word, True, self.color, C.WHITE)
+                word_surface = self.font.render(
+                    word, True, self.color, C.WHITE)
                 word_width, _ = word_surface.get_size()
                 if x + word_width >= self.max_width:
                     x = pos[0]  # Reset the x.
@@ -156,21 +159,21 @@ class Paragraph(Text):
                 return
 
 
-
 class Character:
     """
     Handles the sprites and moving of the character.
     """
+
     def __init__(self, game, level):
         self.game = game
         self.level = level
         self.direction = C.DOWN
         self.load_textures()
-        self.frames=0
-        self.status=C.ST_IDLE
-        self.move_from=None
-        self.sprite_idx=0 # which sprite to use for animation
-        self.anim_frame_num=0
+        self.frames = 0
+        self.status = C.ST_IDLE
+        self.move_from = None
+        self.sprite_idx = 0  # which sprite to use for animation
+        self.anim_frame_num = 0
 
     def load_textures(self):
         ss = C.CHARACTER_SPRITESIZE
@@ -181,19 +184,18 @@ class Character:
             st.append([])
 
         for yoffset, direction in enumerate([
-            C.DOWN,
-            C.LEFT,
-            C.RIGHT,
-            C.UP
-            ]):
+                C.DOWN,
+                C.LEFT,
+                C.RIGHT,
+                C.UP
+        ]):
             for xoffset in range(C.SPRITE_PLAYER_NUM):
                 st[direction].append(
-                        sheet.subsurface((
-                            xoffset*ss,
-                            yoffset*ss+C.CHARACTER_YSTART,
-                            ss,
-                            ss)))
-
+                    sheet.subsurface((
+                        xoffset*ss,
+                        yoffset*ss+C.CHARACTER_YSTART,
+                        ss,
+                        ss)))
 
     def update_textures(self):
         if C.SPRITESIZE not in self.textures:
@@ -206,13 +208,10 @@ class Character:
                     sc = pygame.transform.smoothscale(texture, (sp, sp))
                     l.append(sc)
 
-
-
     def start_move(self, direction):
         self.direction = direction
         self.continue_move()
         return self.status
-
 
     def continue_move(self):
         """
@@ -225,8 +224,8 @@ class Character:
             self.status = self.level.move_player(d)
 
             if self.status != C.ST_IDLE:
-                self.move_to=C.DIRS[self.direction]
-                self.move_from=C.DIRS[opposite(self.direction)]
+                self.move_to = C.DIRS[self.direction]
+                self.move_from = C.DIRS[opposite(self.direction)]
                 self.frames = C.MOVE_FRAMES
 
                 if self.status == C.ST_PUSHING:
@@ -242,16 +241,12 @@ class Character:
 
         return self.frames == 0
 
-
     def stop_move(self):
         self.status = C.ST_IDLE
-        assert(self.frames == 0)
-
-
-
+        assert self.frames == 0
 
     def render(self, window, textures):
-        x,y = self.level.player_position
+        x, y = self.level.player_position
 
         self.anim_frame_num += 1
         if self.anim_frame_num >= C.FRAMES_PER_ANIM:
@@ -264,7 +259,7 @@ class Character:
             ypos = y * C.SPRITESIZE
             frame = 0
         else:
-            mx,my = self.move_from
+            mx, my = self.move_from
             mrx = mx * self.frames / C.MOVE_FRAMES
             mry = my * self.frames / C.MOVE_FRAMES
 
@@ -272,12 +267,11 @@ class Character:
             ypos = int((y+mry) * C.SPRITESIZE)
 
             # draw the box in front of the character
-            mbx,mby = self.move_to
-
+            mbx, mby = self.move_to
 
             if self.status == C.ST_PUSHING:
                 window.blit(self.game.textures[C.SPRITESIZE][C.BOX],
-                        (xpos+mbx*C.SPRITESIZE, ypos+mby*C.SPRITESIZE))
+                            (xpos+mbx*C.SPRITESIZE, ypos+mby*C.SPRITESIZE))
 
-        window.blit(self.textures[C.SPRITESIZE][self.direction][self.sprite_idx], (xpos, ypos))
-
+        window.blit(self.textures[C.SPRITESIZE][self.direction][self.sprite_idx],
+                    (xpos, ypos))
