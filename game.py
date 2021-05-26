@@ -12,7 +12,6 @@ import scores as S
 from graphics import *
 from level import *
 from explore import *
-from player import *
 import scores as S
 from queue import Queue
 from random import randrange
@@ -211,10 +210,10 @@ class GameInterface:
 
         self.all_texts = [
             self.txtInfo,
-# START_CUT
+            # START_CUT
             self.txtLost,
             self.txtResol,
-# END_CUT
+            # END_CUT
         ] +self.always_texts
 
     def compute_ymessages(self):
@@ -342,7 +341,7 @@ class Game:
 
     def __init__(self, window, continueGame=True):
         self.window = window
-        self.player = None
+        self.character = None
         self.interface = None
         self.level = Level(
             self,
@@ -364,7 +363,7 @@ class Game:
     def load_textures(self):
         """
         loads the textures that will be drawn in the game
-        (walls, boxes, player, etc.)
+        (walls, boxes, character, etc.)
         """
         def fn(f):
             return os.path.join('assets', 'images', f)
@@ -488,15 +487,15 @@ class Game:
 
         self.create_board()
 
-        if self.player:
+        if self.character:
             self.interface.level = self.level
-            self.player.level = self.level
+            self.character.level = self.level
         else:
-            self.player = Player(self, self.level)
+            self.character = Character(self, self.level)
 
         # scales textures to current spritesize if necessary
         self.update_textures()
-        self.player.update_textures()
+        self.character.update_textures()
 
         sc = S.scores.get()
         self.interface.best_moves(sc)
@@ -571,6 +570,14 @@ class Game:
             return
         self.sndWin.play()
 
+    def sound_stop_move_push(self):
+        if not C.WITH_SOUND:
+            return
+        if self.channelFootsteps is not None:
+            self.channelFootsteps.stop()
+        if self.channelPushing is not None:
+            self.channelPushing.stop()
+
     def start(self):
         """
         main loop of  the game
@@ -634,7 +641,7 @@ class Game:
         for d in path:
             # simulate key presses
             key = DIRKEY[d]
-            self.move_player(key)
+            self.move_character(key)
 
             self.update_screen()
             pygame.time.wait(C.MOVE_DELAY)
@@ -663,7 +670,7 @@ class Game:
             # now push dthe box
             if not skip_last or not last:
                 key = DIRKEY[oppd]
-                self.move_player(key)
+                self.move_character(key)
 
             self.update_screen()
 
@@ -705,7 +712,7 @@ class Game:
                 return False
 
             elif event.key in KEYDIR.keys():
-                self.move_player(event.key, continue_until_released=True)
+                self.move_character(event.key, continue_until_released=True)
 
             elif event.key == K_n or event.key == K_GREATER:
                 ret = self.load_level(nextLevel=True)
@@ -729,8 +736,7 @@ class Game:
 
             # "Test" key
             elif event.key == K_t:
-                # Add code here that you would like to trigger
-                # with the 'T' key
+                # Add code here that you would like to trigger with the 'T' key
                 # For now, just move in a circle in the 'test_move' method
                 self.test_move()
 
@@ -790,21 +796,21 @@ class Game:
                 (C.WINDOW_WIDTH, C.WINDOW_HEIGHT), RESIZABLE)
             self.create_board()
             self.update_textures()
-            self.player.update_textures()
+            self.character.update_textures()
             self.interface.update_positions()
 
         return True
 
-    def move_player(self, key, continue_until_released=False):
+    def move_character(self, key, continue_until_released=False):
         """
         A direction key has been pressed.
-        Move (or try to move) the player in this direction
+        Move (or try to move) the character in this direction
         until the key is released
         """
         direction = KEYDIR[key]
 
-        # Ask to move player
-        status = self.player.start_move(direction)
+        # Ask to move character
+        status = self.character.start_move(direction)
 
         # after a box has been moved, the 'cancel' button becomes
         # available
@@ -863,7 +869,7 @@ class Game:
                             pygame.event.post(save_event)
                         break
 
-            on_tile = self.player.continue_move()
+            on_tile = self.character.continue_move()
 
             if on_tile:
                 if prev_status == C.ST_PUSHING:
@@ -883,20 +889,17 @@ class Game:
 
                 # key not pressed anymore and finished arriving on the tile
                 if stop_next_tile:
-                    self.player.stop_move()
+                    self.character.stop_move()
                     break
                 # otherwise, continue, and play new sound
 
             prev_status = status
-            status = self.player.status
+            status = self.character.status
 
             self.update_screen()
 
         # stop sounds
-        if self.channelFootsteps is not None:
-            self.channelFootsteps.stop()
-        if self.channelPushing is not None:
-            self.channelPushing.stop()
+        self.sound_stop_move_push()
 
         if is_win:
             self.level_win()
@@ -994,7 +997,7 @@ class Game:
 
         self.level.render(
             self.board, self.textures[C.SPRITESIZE], self.highlights)
-        self.player.render(self.board, self.textures[C.ORIG_SPRITESIZE])
+        self.character.render(self.board, self.textures[C.ORIG_SPRITESIZE])
 
         if self.has_changed:
             self.has_changed = False
@@ -1025,8 +1028,6 @@ class Game:
         print("Waiting for keypress...")
         self.wait_key()
 
-
-
     def test_move(self):
         """
         "automated" movement: pretend the user has pressed a direction key
@@ -1035,4 +1036,4 @@ class Game:
         """
         for m in [C.UP, C.RIGHT, C.DOWN, C.LEFT]:
             key = DIRKEY[m]
-            self.move_player(key)
+            self.move_character(key)

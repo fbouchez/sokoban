@@ -130,7 +130,7 @@ MOVE_FRAMES = 8
 TARGET_FPS  = 40
 
 
-# Player states
+# Character states
 ST_IDLE = 0
 ST_MOVING = 1
 ST_PUSHING = 2 # moving and pushing a box
