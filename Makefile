@@ -3,7 +3,7 @@ all: main
 # START_CUT
 SUBDIRS=
 STUDENT_FILES_PY= explore.py game.py graphics.py interface.py level.py player.py README.md scores.py
-STUDENT_FILES_NOCUT= assets utils.py common.py Sokoban.py
+STUDENT_FILES_NOCUT= assets utils.py common.py Sokoban.py sounds.py
 
 include students.mk
 
