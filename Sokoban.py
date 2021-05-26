@@ -5,19 +5,19 @@
 
 """
 
+import scores
+from interface import Menu
+from game import Game
+from utils import *
+import common as C
+from pygame.locals import *
+import pygame
+import time
 import sys
 import os
 # Hide welcome message from pygame
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
-import time
-import pygame
-from pygame.locals import *
-import common as C
-from utils import *
-from game import Game
-from interface import Menu
-import scores
 
 def display_help():
     print("Usage: ./Sokoban.py [-h] [-v] [--no-sound]")
@@ -40,10 +40,11 @@ def parse_options():
             display_help()
             exit(0)
 
+
 def main():
 
     parse_options()
-    verbose("Verbose mode activated") # will only print if option was set
+    verbose("Verbose mode activated")  # will only print if option was set
 
     # read scores and current pack / last level information
     scores.load_scores()
@@ -54,7 +55,8 @@ def main():
     # Key repetition to allow  fast cancels
     pygame.key.set_repeat(400, 60)
     pygame.display.set_caption("Sokoban Game")
-    window = pygame.display.set_mode((C.WINDOW_WIDTH, C.WINDOW_HEIGHT), RESIZABLE)
+    window = pygame.display.set_mode(
+        (C.WINDOW_WIDTH, C.WINDOW_HEIGHT), RESIZABLE)
 
     menu = Menu(window)
     pygame.quit()
@@ -64,6 +66,7 @@ def main():
 def debug_signal_handler(signal, frame):
     import pdb
     pdb.set_trace()
+
 
 if __name__ == "__main__":
     import signal

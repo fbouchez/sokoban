@@ -7,6 +7,7 @@ import os
 import common as C
 from random import randrange
 
+
 class Sounds:
 
     def __init__(self):
@@ -46,7 +47,6 @@ class Sounds:
         self.sndWin = pygame.mixer.Sound(fn('jingle-win.ogg'))
         self.sndWin.set_volume(.06)
 
-
     def play_footstep(self):
         if not C.WITH_SOUND:
             return
@@ -78,5 +78,3 @@ class Sounds:
             self.channelFootsteps.stop()
         if self.channelPushing is not None:
             self.channelPushing.stop()
-
-

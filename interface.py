@@ -43,7 +43,6 @@ class GenericMenu:
                 return True
         return False
 
-
     def handle_event(self):
         """
         Check user inputs: mouse, keyboard, window resizing, etc.
@@ -94,16 +93,18 @@ class GenericMenu:
             s.render(self.window)
 
 
-
 class Menu(GenericMenu):
     """
     Initial menu when launching the game, with main choices (new game, 
     continue, choose pack, or quit).
     """
+
     def __init__(self, window):
         super().__init__(window)
-        self.image = pygame.image.load(os.path.join('assets', 'images', 'menu.png')).convert_alpha()
-        self.font_menu = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 30)
+        self.image = pygame.image.load(os.path.join(
+            'assets', 'images', 'menu.png')).convert_alpha()
+        self.font_menu = pygame.font.Font(os.path.join(
+            'assets', 'fonts', 'FreeSansBold.ttf'), 30)
 
         self.load()
         self.run()
@@ -123,7 +124,6 @@ class Menu(GenericMenu):
         # choosing a level pack
         PackChoice(self.window)
         self.txtPackName.update(self.mk_pack_name())
-
 
     def quit(self):
         pygame.quit()
@@ -149,14 +149,11 @@ class Menu(GenericMenu):
             callback=self.choose_pack
         )
 
-
         self.txtPackName = Text(
             self.mk_pack_name(),
             self.font_menu, C.BLUE, C.ACENTER, C.ACUSTOM,
             below=self.txtChoose
         )
-
-
 
         self.txtQuit = Text(
             "Quitter (Q)",
@@ -183,13 +180,11 @@ class Menu(GenericMenu):
             K_q: self.set_return,
         })
 
-
-
-
     def render(self):
         xpos = (C.WINDOW_WIDTH - self.image.get_width())//2
         ypos = (C.WINDOW_HEIGHT - self.image.get_height())//2
-        sc = pygame.transform.scale(self.image, (C.WINDOW_WIDTH, C.WINDOW_HEIGHT))
+        sc = pygame.transform.scale(
+            self.image, (C.WINDOW_WIDTH, C.WINDOW_HEIGHT))
         # window.blit(self.image, (xpos,ypos))
         self.window.blit(sc, (0, 0))
 
@@ -203,9 +198,12 @@ class PackChoice(GenericMenu):
 
     def __init__(self, window):
         super().__init__(window)
-        self.font_menu = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 30)
-        self.font_action = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 24)
-        self.font_text = pygame.font.Font(os.path.join('assets', 'fonts', 'FreeSansBold.ttf'), 18)
+        self.font_menu = pygame.font.Font(os.path.join(
+            'assets', 'fonts', 'FreeSansBold.ttf'), 30)
+        self.font_action = pygame.font.Font(os.path.join(
+            'assets', 'fonts', 'FreeSansBold.ttf'), 24)
+        self.font_text = pygame.font.Font(os.path.join(
+            'assets', 'fonts', 'FreeSansBold.ttf'), 18)
 
         self.choice = S.scores.current_pack
         self.pack_idx = C.PACKS.index(self.choice)
@@ -215,7 +213,7 @@ class PackChoice(GenericMenu):
     def read_desc(self):
         desc = []
 
-        # need to differentiate the last lines as these migh be "attached" to 
+        # need to differentiate the last lines as these might be "attached" to
         # the first level
         last_lines = []
 
@@ -228,7 +226,7 @@ class PackChoice(GenericMenu):
                 if l == "":
                     desc = desc + last_lines
                     last_lines = []
-                last_lines.append(l) # also appends empty line
+                last_lines.append(l)  # also appends empty line
         return desc
 
     def reload(self):
@@ -251,7 +249,6 @@ class PackChoice(GenericMenu):
         self.pack_idx += len(C.PACKS) - 1
         self.pack_idx %= len(C.PACKS)
         self.reload()
-
 
     def load(self):
 
@@ -307,7 +304,6 @@ class PackChoice(GenericMenu):
             self.txtDesc,
         ] + self.clickableTexts
 
-
         self.keys_events.update({
             K_c: self.choose,
             K_s: self.next,
@@ -315,14 +311,7 @@ class PackChoice(GenericMenu):
             K_q: self.set_return,
         })
 
-
-
-
-
-
     def render(self):
         for s in self.renderTexts:
             s.update()
             s.render(self.window)
-
-

@@ -214,7 +214,7 @@ class GameInterface:
             self.txtLost,
             self.txtResol,
             # END_CUT
-        ] +self.always_texts
+        ] + self.always_texts
 
     def compute_ymessages(self):
         return C.WINDOW_HEIGHT - 80
@@ -457,6 +457,8 @@ class Game:
 
 
 # START_CUT
+
+
     def toggle_visualize(self):
         """
         Activate/deactivate visual mode:
@@ -799,7 +801,6 @@ class Game:
             self.animate_move_to(position)
 # END_CUT
 
-
     def wait_key(self, update=True):
         if update:
             self.update_screen()
@@ -827,7 +828,7 @@ class Game:
             if event.type == KEYDOWN \
                     and event.key == K_ESCAPE:
                 # do something here to cancel calculation
-# START_CUT
+                # START_CUT
                 self.interface.set_solving(False)
 # END_CUT
                 return True
