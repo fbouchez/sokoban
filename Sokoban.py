@@ -5,19 +5,17 @@
 
 """
 
-import scores
-from interface import Menu
-from game import Game
-from utils import *
-import common as C
-from pygame.locals import *
-import pygame
-import time
 import sys
 import os
+import time
 # Hide welcome message from pygame
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-
+import pygame
+from pygame.locals import *
+import scores
+from interface import Menu
+from utils import *
+import common as C
 
 def display_help():
     print("Usage: ./Sokoban.py [-h] [-v] [--no-sound]")
